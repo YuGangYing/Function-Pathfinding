@@ -3,8 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 namespace YYGAStar
 {
-
-	//Grid(経路が探索られることができるノード作成したり、保存したり)
+	//Grid(経路が探索られることができるノードを作成したり、保存(格納かくのう)したり)
 	//ノードが格納される場所(ばしょ)
 	public class Grid : MonoBehaviour {
 		
@@ -48,6 +47,7 @@ namespace YYGAStar
 			nodes = new Node[xCount,yCount];
 			allNodes = new List<Node>();
 			//start at (0,0,0),end at (xCount,0,yCount);
+			//TODO 今は四方面である、他のneighbor方法は六方面と八方面
 			for(int j=0;j < yCount;j++)
 			{
 				for(int i=0;i < xCount;i++)
@@ -151,7 +151,7 @@ namespace YYGAStar
 		public float H;//Manhattan distance  曼哈顿算法
 		public float F;
 		public List<Node> neighbors = new List<Node>();//このノードに接続(せつぞく)するノード。
-		public List<float> consumes = new List<float>();//このノードから接続ノードまで、移動消費(いどうしょうひ)。
+		public List<float> consumes = new List<float>();//このノードから接続ノードまで、移動消費(いどうしょうひ)コスト。
 		public bool isBlock;//壁中にいるのかどうか
 		public bool isWallSide;//壁に向かってるのかどうか
 		public Vector3 pos;//ゲーム世界のポジション。
