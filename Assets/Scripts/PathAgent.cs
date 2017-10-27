@@ -5,7 +5,6 @@ using System.Collections.Generic;
 namespace YYGAStar
 {
 	//エースター　A to B の最短(さいたん)経路(けいろ)を探索(たんさく)
-
 	//TODO 壁に向かってるノード必要だ。
 	//TODO 様々な場合を考えることがある。
 	//TODO 効率化になる必要だ。
