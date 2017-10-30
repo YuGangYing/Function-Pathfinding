@@ -50,6 +50,7 @@
      <Compile Include="Assets\Scripts\Grid.cs" />
      <Compile Include="Assets\Scripts\PathAgent.cs" />
      <Compile Include="Assets\Scripts\PathController.cs" />
+     <Compile Include="Assets\Scripts\TestMesh.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>/Applications/Unity5.6.2f1/Unity.app/Contents/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
