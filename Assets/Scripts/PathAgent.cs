@@ -21,7 +21,7 @@ namespace YYGAStar
 		//add,contain.
 		public HashSet<Node> closeSet = new HashSet<Node> ();
 		//whether synchronization.
-		 bool isSynchronization = true;
+		bool isSynchronization = true;
 
 		void Start ()
 		{
@@ -40,6 +40,7 @@ namespace YYGAStar
 		float mTime1;
 		float mOrderTime;
 		float mOrderTime1;
+
 		public void StartFinder (Vector3 pos)
 		{
 			mOrderTime = 0;
@@ -59,25 +60,20 @@ namespace YYGAStar
 			openList.Clear ();
 			closeSet.Clear ();
 			openSet.Clear ();
-			if(mIsMoving)
+			if (mIsMoving)
 				StopCoroutine ("_Move");
 			targetNode = target;
 			currentNode = GetNode (transform.position);
 			openList.Add (currentNode);
 			openSet.Add (currentNode);
-//			Debug.Log (currentNode.pos);
 			grid.Clear ();
 			mTime1 = Time.realtimeSinceStartup - mTime1;
-//			if (isSynchronization) {
-				Find ();
-//			} else {
-//				//TODO
-//				StartCoroutine (_Find ());	
-//			}
+			Find ();
 		}
 
 		//同期
-		void Find(){
+		void Find ()
+		{
 			float t1 = Time.realtimeSinceStartup;
 			while (openList.Count > 0) {
 				//リスト中にF値一番小さいのノード
@@ -87,7 +83,7 @@ namespace YYGAStar
 					openSet.Clear ();
 				} else {
 //					openList.Remove (node);
-					openList.RemoveAt(0);//always index 0 の　ノード。
+					openList.RemoveAt (0);//always index 0 の　ノード。
 					openSet.Remove (node);
 					closeSet.Add (node);
 					float t = Time.realtimeSinceStartup;
@@ -104,7 +100,7 @@ namespace YYGAStar
 							node.neighbors [i].previous = node;
 						}
 					}
-					mOrderTime += Time.realtimeSinceStartup - t;
+					mOrderTime += (Time.realtimeSinceStartup - t);
 				}
 			}
 			mOrderTime1 = Time.realtimeSinceStartup - t1;
@@ -112,7 +108,7 @@ namespace YYGAStar
 			Move (targetNode);
 		}
 
-		//非同期 
+		//非同期
 		IEnumerator _Find ()
 		{
 			while (openList.Count > 0) {
@@ -212,7 +208,7 @@ namespace YYGAStar
 		{
 			Node currentNode = node;
 			path.Insert (0, currentNode);
-			while(currentNode.previous != null){
+			while (currentNode.previous != null) {
 				path.Insert (0, currentNode.previous);
 				currentNode = currentNode.previous;
 			}
