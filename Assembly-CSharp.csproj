@@ -46,11 +46,23 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\RtsCamera\DemoScene\Scripts\DemoGui.cs" />
+     <Compile Include="Assets\RtsCamera\DemoScene\Scripts\DemoKeys.cs" />
+     <Compile Include="Assets\RtsCamera\DemoScene\Scripts\DemoMain.cs" />
+     <Compile Include="Assets\RtsCamera\DemoScene\Scripts\ObjectLabel.cs" />
+     <Compile Include="Assets\RtsCamera\DemoScene\Scripts\Walker.cs" />
+     <Compile Include="Assets\RtsCamera\Scripts\FollowHelper.cs" />
+     <Compile Include="Assets\RtsCamera\Scripts\FollowOnClick.cs" />
+     <Compile Include="Assets\RtsCamera\Scripts\RtsCamera.cs" />
+     <Compile Include="Assets\RtsCamera\Scripts\RtsCameraKeys.cs" />
+     <Compile Include="Assets\RtsCamera\Scripts\RtsCameraMouse.cs" />
+     <Compile Include="Assets\RtsCamera\Scripts\RtsEffectsUpdater.cs" />
      <Compile Include="Assets\Scripts\CameraFollow.cs" />
      <Compile Include="Assets\Scripts\Grid.cs" />
      <Compile Include="Assets\Scripts\PathAgent.cs" />
      <Compile Include="Assets\Scripts\PathController.cs" />
-     <Compile Include="Assets\Scripts\TestMesh.cs" />
+     <None Include="Assets\RtsCamera\README.txt" />
+     <None Include="Assets\RtsCamera\DemoScene\Shaders\Additive.shader" />
  <Reference Include="UnityEngine.UI">
  <HintPath>/Applications/Unity5.6.2f1/Unity.app/Contents/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

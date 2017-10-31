@@ -89,7 +89,7 @@ namespace YYGAStar
 			Move (targetNode);
 		}
 
-		//非同期
+		//非同期 
 		IEnumerator _Find ()
 		{
 			while (openList.Count > 0) {
