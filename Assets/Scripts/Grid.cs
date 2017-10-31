@@ -34,9 +34,9 @@ namespace YYGAStar
 		}
 
 		public void Clear(){
-			foreach(Node node in allNodes)
+			for(int i=0;i<allNodes.Count;i++)// Node node in allNodes)
 			{
-				node.previous = null;
+				allNodes[i].previous = null;
 			}	
 		}
 
@@ -57,7 +57,7 @@ namespace YYGAStar
 					node.y = j;
 					node.pos = new Vector3(i * edgeLength,0,j * edgeLength) + startPos;
 					nodes[i,j] = node;
-					Debug.Log("i=" + i + ";j=" + j);
+//					Debug.Log("i=" + i + ";j=" + j);
 					if(i > 0)
 					{
 						nodes[i-1,j].neighbors.Add(node);

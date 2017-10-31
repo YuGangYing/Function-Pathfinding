@@ -15,13 +15,13 @@ namespace YYGAStar
 		public Node currentNode;
 		public Node targetNode;
 		//add,remove,order.
-		public List<Node> openList = new List<Node> ();
+		public List<Node> openList = new List<Node> (1000);
 		//add,remove,contain.
 		public HashSet<Node> openSet = new HashSet<Node> ();
 		//add,contain.
 		public HashSet<Node> closeSet = new HashSet<Node> ();
 		//whether synchronization.
-		public bool isSynchronization = true;
+		 bool isSynchronization = true;
 
 		void Start ()
 		{
@@ -36,42 +36,63 @@ namespace YYGAStar
 			return node;
 		}
 
+		float mTime;
+		float mTime1;
+		float mOrderTime;
+		float mOrderTime1;
 		public void StartFinder (Vector3 pos)
 		{
+			mOrderTime = 0;
+			mOrderTime1 = 0;
 			Node target = GetNode (pos);
+			mTime = Time.realtimeSinceStartup;
 			StartFinder (target);
+			Debug.Log (Time.realtimeSinceStartup - mTime);
+			Debug.Log (mTime1);
+			Debug.Log (mOrderTime);
+			Debug.Log (mOrderTime1);
 		}
 
 		public void StartFinder (Node target)
 		{
+			mTime1 = Time.realtimeSinceStartup;
 			openList.Clear ();
 			closeSet.Clear ();
 			openSet.Clear ();
-			StopCoroutine ("_Move");
+			if(mIsMoving)
+				StopCoroutine ("_Move");
 			targetNode = target;
 			currentNode = GetNode (transform.position);
 			openList.Add (currentNode);
-			Debug.Log (currentNode.pos);
+			openSet.Add (currentNode);
+//			Debug.Log (currentNode.pos);
 			grid.Clear ();
-			if (isSynchronization) {
+			mTime1 = Time.realtimeSinceStartup - mTime1;
+//			if (isSynchronization) {
 				Find ();
-			} else {
-				StartCoroutine (_Find ());	
-			}
+//			} else {
+//				//TODO
+//				StartCoroutine (_Find ());	
+//			}
 		}
 
 		//同期
 		void Find(){
+			float t1 = Time.realtimeSinceStartup;
 			while (openList.Count > 0) {
 				//リスト中にF値一番小さいのノード
 				Node node = openList [0];
 				if (node == targetNode) {
 					openList.Clear ();
+					openSet.Clear ();
 				} else {
-					openList.Remove (node);
+//					openList.Remove (node);
+					openList.RemoveAt(0);//always index 0 の　ノード。
+					openSet.Remove (node);
 					closeSet.Add (node);
+					float t = Time.realtimeSinceStartup;
 					for (int i = 0; i < node.neighbors.Count; i++) {
-						if (!openList.Contains (node.neighbors [i]) && !closeSet.Contains (node.neighbors [i]) && !node.neighbors [i].isBlock) {
+						if (!openSet.Contains (node.neighbors [i]) && !closeSet.Contains (node.neighbors [i]) && !node.neighbors [i].isBlock) {
 							//Calculate G
 							node.neighbors [i].G = node.G + node.consumes [i];
 							//Calculate H
@@ -83,9 +104,11 @@ namespace YYGAStar
 							node.neighbors [i].previous = node;
 						}
 					}
+					mOrderTime += Time.realtimeSinceStartup - t;
 				}
 			}
-			Debug.Log ("Find Done");
+			mOrderTime1 = Time.realtimeSinceStartup - t1;
+//			Debug.Log ("Find Done");
 			Move (targetNode);
 		}
 
@@ -138,6 +161,7 @@ namespace YYGAStar
 			if (!added) {
 				openList.Insert (openList.Count, node);
 			}
+			openSet.Add (node);
 		}
 
 		public void Move (Node node)
@@ -148,9 +172,11 @@ namespace YYGAStar
 		}
 
 		float speed = 10;
+		bool mIsMoving = false;
 		//Move Agentが必要です
 		IEnumerator _Move ()
 		{
+			mIsMoving = true;
 			while (path.Count > 0) {
 				float t = 0;
 				Vector3 pos = transform.position;
@@ -167,6 +193,7 @@ namespace YYGAStar
 				path.RemoveAt (0);
 				yield return null;
 			}
+			mIsMoving = false;
 		}
 
 		bool IsPathBlock ()
@@ -179,14 +206,19 @@ namespace YYGAStar
 			return false;
 		}
 
-		List<Node> path = new List<Node> ();
-
+		List<Node> path = new List<Node> (1000);
+		//経路をゲートする。
 		public void GetMovePath (Node node)
 		{
-			path.Insert (0, node);
-			if (node.previous != null) {
-				GetMovePath (node.previous);
+			Node currentNode = node;
+			path.Insert (0, currentNode);
+			while(currentNode.previous != null){
+				path.Insert (0, currentNode.previous);
+				currentNode = currentNode.previous;
 			}
+//			if (node.previous != null) {
+//				GetMovePath (node.previous);
+//			}
 		}
 
 		void OnDrawGizmos ()
