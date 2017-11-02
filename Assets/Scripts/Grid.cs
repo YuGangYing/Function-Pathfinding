@@ -21,7 +21,7 @@ namespace YYGAStar
 		public int y0;
 #endif
 
-		void Start () {
+		void Awake () {
 			Init();
 			CalculateBlockNode();
 		}

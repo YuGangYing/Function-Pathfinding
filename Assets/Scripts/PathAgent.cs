@@ -48,7 +48,8 @@ namespace YYGAStar
 			Node target = GetNode (pos);
 			mTime = Time.realtimeSinceStartup;
 			StartFinder (target);
-			Debug.Log (Time.realtimeSinceStartup - mTime);
+			Move ();
+			Debug.Log ("Total Find Time:" + (Time.realtimeSinceStartup - mTime));
 			Debug.Log (mTime1);
 			Debug.Log (mOrderTime);
 			Debug.Log (mOrderTime1);
@@ -104,11 +105,11 @@ namespace YYGAStar
 				}
 			}
 			mOrderTime1 = Time.realtimeSinceStartup - t1;
-//			Debug.Log ("Find Done");
-			Move (targetNode);
+			path.Clear ();
+			GetMovePath (targetNode);
 		}
 
-		//非同期
+		//非同期 BUG中、TODO。
 		IEnumerator _Find ()
 		{
 			while (openList.Count > 0) {
@@ -138,7 +139,7 @@ namespace YYGAStar
 			}
 			yield return null;
 			Debug.Log ("Find Done");
-			Move (targetNode);
+			Move ();
 		}
 
 		//ノードをFで順番で openlist へ置いて
@@ -148,7 +149,7 @@ namespace YYGAStar
 			bool added = false;
 			for (int i = 0; i < openList.Count; i++) {
 				//node.isWallSide時優先に探する。
-				if (openList [i].F >= node.F || node.isWallSide) {
+				if (openList [i].F >= node.F){      // || node.isWallSide) {
 					openList.Insert (i, node);
 					added = true;
 					break;
@@ -160,14 +161,12 @@ namespace YYGAStar
 			openSet.Add (node);
 		}
 
-		public void Move (Node node)
+		public void Move ()
 		{
-			path.Clear ();
-			GetMovePath (node);
 			StartCoroutine ("_Move");
 		}
 
-		float speed = 10;
+		float mSpeed = 10;
 		bool mIsMoving = false;
 		//Move Agentが必要です
 		IEnumerator _Move ()
@@ -183,7 +182,7 @@ namespace YYGAStar
 					}
 					transform.position = Vector3.Lerp (pos, path [0].pos, t);
 					transform.LookAt (path [0].pos);
-					t += Time.deltaTime * speed;
+					t += Time.deltaTime * mSpeed;
 					yield return null;
 				}
 				path.RemoveAt (0);
@@ -212,9 +211,6 @@ namespace YYGAStar
 				path.Insert (0, currentNode.previous);
 				currentNode = currentNode.previous;
 			}
-//			if (node.previous != null) {
-//				GetMovePath (node.previous);
-//			}
 		}
 
 		void OnDrawGizmos ()

@@ -59,6 +59,7 @@
      <Compile Include="Assets\RtsCamera\Scripts\RtsEffectsUpdater.cs" />
      <Compile Include="Assets\Scripts\CameraFollow.cs" />
      <Compile Include="Assets\Scripts\Grid.cs" />
+     <Compile Include="Assets\Scripts\MoveAgent.cs" />
      <Compile Include="Assets\Scripts\PathAgent.cs" />
      <Compile Include="Assets\Scripts\PathController.cs" />
      <None Include="Assets\RtsCamera\README.txt" />
