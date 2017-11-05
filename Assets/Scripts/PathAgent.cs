@@ -10,14 +10,14 @@ namespace YYGAStar
 	//TODO 効率化になる必要だ。
 	public class PathAgent : MonoBehaviour
 	{
-
+		static int agentIndex = 0;
 		public Grid grid;
 		public Node currentNode;
 		public Node targetNode;
 		//add,remove,order.
 		public List<Node> openList = new List<Node> (1000);
 		//add,remove,contain.
-		public HashSet<Node> openSet = new HashSet<Node> ();
+//		public HashSet<Node> openSet = new HashSet<Node> ();
 		//add,contain.
 		public HashSet<Node> closeSet = new HashSet<Node> ();
 		//whether synchronization.
@@ -57,19 +57,36 @@ namespace YYGAStar
 
 		public void StartFinder (Node target)
 		{
+			agentIndex++;
 			mTime1 = Time.realtimeSinceStartup;
 			openList.Clear ();
 			closeSet.Clear ();
-			openSet.Clear ();
+//			openSet.Clear ();
 			if (mIsMoving)
 				StopCoroutine ("_Move");
 			targetNode = target;
 			currentNode = GetNode (transform.position);
 			openList.Add (currentNode);
-			openSet.Add (currentNode);
+//			openSet.Add (currentNode);
 			grid.Clear ();
 			mTime1 = Time.realtimeSinceStartup - mTime1;
 			Find ();
+		}
+
+		void AddToOpenList(Node node){
+			node.isOpen = agentIndex;
+			AddOpenList (node);
+		}
+
+		Node RemoveFirstFromOpenList(){
+			Node node = openList [0];
+			openList.RemoveAt (0);
+			return node;
+		}
+
+		void AddToCloseList(Node node){
+			closeSet.Add (node);
+			node.isClose = agentIndex;
 		}
 
 		//同期
@@ -78,18 +95,19 @@ namespace YYGAStar
 			float t1 = Time.realtimeSinceStartup;
 			while (openList.Count > 0) {
 				//リスト中にF値一番小さいのノード
-				Node node = openList [0];
+				Node node = RemoveFirstFromOpenList();// openList [0];
 				if (node == targetNode) {
 					openList.Clear ();
-					openSet.Clear ();
+//					openSet.Clear ();
 				} else {
 //					openList.Remove (node);
-					openList.RemoveAt (0);//always index 0 の　ノード。
-					openSet.Remove (node);
-					closeSet.Add (node);
+//					openList.RemoveAt (0);//always index 0 の　ノード。
+//					openSet.Remove (node);
+					AddToCloseList (node);
 					float t = Time.realtimeSinceStartup;
 					for (int i = 0; i < node.neighbors.Count; i++) {
-						if (!openSet.Contains (node.neighbors [i]) && !closeSet.Contains (node.neighbors [i]) && !node.neighbors [i].isBlock) {
+						if (node.neighbors [i].isOpen != agentIndex && node.neighbors [i].isClose != agentIndex && !node.neighbors [i].isBlock) {
+//							if (!openSet.Contains (node.neighbors [i]) && !closeSet.Contains (node.neighbors [i]) && !node.neighbors [i].isBlock) {
 							//Calculate G
 							node.neighbors [i].G = node.G + node.consumes [i];
 							//Calculate H
@@ -97,7 +115,7 @@ namespace YYGAStar
 							//Calculate F
 							node.neighbors [i].F = node.neighbors [i].G + node.neighbors [i].H;
 							//insert openlist order by F;
-							AddOpenList (node.neighbors [i]);
+							AddToOpenList (node.neighbors [i]);
 							node.neighbors [i].previous = node;
 						}
 					}
@@ -158,7 +176,7 @@ namespace YYGAStar
 			if (!added) {
 				openList.Insert (openList.Count, node);
 			}
-			openSet.Add (node);
+//			openSet.Add (node);
 		}
 
 		public void Move ()

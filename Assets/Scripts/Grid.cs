@@ -156,5 +156,10 @@ namespace YYGAStar
 		public bool isWallSide;//壁に向かってるのかどうか
 		public Vector3 pos;//ゲーム世界のポジション。
 		public Node previous;//
+
+		//用以下两个参数来判断是否在open close list，这样就可以不用hashset contain方法了，这样更快。（100*100的grid情况下从8ms降低6ms）
+		//用int自增，这样就不用在第二次开始的时候reset这两个值了
+		public int isOpen;
+		public int isClose;
 	}
 }
