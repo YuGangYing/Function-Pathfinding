@@ -15,13 +15,13 @@ namespace YYGAStar
 		public Node currentNode;
 		public Node targetNode;
 		//add,remove,order.
-		public List<Node> openList = new List<Node> (1000);
+		public NodeList<Node> openList = new NodeList<Node> (10000);
 		//add,remove,contain.
-		public HashSet<Node> openSet = new HashSet<Node> ();
+//		public HashSet<Node> openSet = new HashSet<Node> ();
 		//add,contain.
 		public HashSet<Node> closeSet = new HashSet<Node> ();
 		//whether synchronization.
-		bool isSynchronization = true;
+//		bool isSynchronization = true;
 
 		void Start ()
 		{
@@ -58,15 +58,15 @@ namespace YYGAStar
 		public void StartFinder (Node target)
 		{
 			mTime1 = Time.realtimeSinceStartup;
-			openList.Clear ();
+			openList = new NodeList<Node> (10000);
 			closeSet.Clear ();
-			openSet.Clear ();
+//			openSet.Clear ();
 			if (mIsMoving)
 				StopCoroutine ("_Move");
 			targetNode = target;
 			currentNode = GetNode (transform.position);
 			openList.Add (currentNode);
-			openSet.Add (currentNode);
+//			openSet.Add (currentNode);
 			grid.Clear ();
 			mTime1 = Time.realtimeSinceStartup - mTime1;
 			Find ();
@@ -78,18 +78,17 @@ namespace YYGAStar
 			float t1 = Time.realtimeSinceStartup;
 			while (openList.Count > 0) {
 				//リスト中にF値一番小さいのノード
-				Node node = openList [0];
+				Node node = openList.RemoveFirst ();
 				if (node == targetNode) {
-					openList.Clear ();
-					openSet.Clear ();
+//					openSet.Clear ();
 				} else {
 //					openList.Remove (node);
-					openList.RemoveAt (0);//always index 0 の　ノード。
-					openSet.Remove (node);
+//					openList.RemoveFirst ();//always index 0 の　ノード。
+//					openSet.Remove (node);
 					closeSet.Add (node);
 					float t = Time.realtimeSinceStartup;
 					for (int i = 0; i < node.neighbors.Count; i++) {
-						if (!openSet.Contains (node.neighbors [i]) && !closeSet.Contains (node.neighbors [i]) && !node.neighbors [i].isBlock) {
+						if (!openList.Contains (node.neighbors [i]) && !closeSet.Contains (node.neighbors [i]) && !node.neighbors [i].isBlock) {
 							//Calculate G
 							node.neighbors [i].G = node.G + node.consumes [i];
 							//Calculate H
@@ -97,7 +96,8 @@ namespace YYGAStar
 							//Calculate F
 							node.neighbors [i].F = node.neighbors [i].G + node.neighbors [i].H;
 							//insert openlist order by F;
-							AddOpenList (node.neighbors [i]);
+//							AddOpenList (node.neighbors [i]);
+							openList.Add (node.neighbors [i]);
 							node.neighbors [i].previous = node;
 						}
 					}
@@ -110,56 +110,56 @@ namespace YYGAStar
 		}
 
 		//非同期 BUG中、TODO。
-		IEnumerator _Find ()
-		{
-			while (openList.Count > 0) {
-				//リスト中にF値一番小さいのノード
-				Node node = openList [0];
-				if (node == targetNode) {
-					openList.Clear ();
-					yield return null;
-				} else {
-					openList.Remove (node);
-					closeSet.Add (node);
-					for (int i = 0; i < node.neighbors.Count; i++) {
-						if (!openList.Contains (node.neighbors [i]) && !closeSet.Contains (node.neighbors [i]) && !node.neighbors [i].isBlock) {
-							//Calculate G
-							node.neighbors [i].G = node.G + node.consumes [i];
-							//Calculate H
-							node.neighbors [i].H = Mathf.Abs (targetNode.x - node.neighbors [i].x) + Mathf.Abs (targetNode.y - node.neighbors [i].y);
-							//Calculate F
-							node.neighbors [i].F = node.neighbors [i].G + node.neighbors [i].H;
-							//insert openlist order by F;
-							AddOpenList (node.neighbors [i]);
-							node.neighbors [i].previous = node;
-						}
-					}
-				}
-				yield return null;
-			}
-			yield return null;
-			Debug.Log ("Find Done");
-			Move ();
-		}
+//		IEnumerator _Find ()
+//		{
+//			while (openList.Count > 0) {
+//				//リスト中にF値一番小さいのノード
+//				Node node = openList [0];
+//				if (node == targetNode) {
+//					openList.Clear ();
+//					yield return null;
+//				} else {
+//					openList.Remove (node);
+//					closeSet.Add (node);
+//					for (int i = 0; i < node.neighbors.Count; i++) {
+//						if (!openList.Contains (node.neighbors [i]) && !closeSet.Contains (node.neighbors [i]) && !node.neighbors [i].isBlock) {
+//							//Calculate G
+//							node.neighbors [i].G = node.G + node.consumes [i];
+//							//Calculate H
+//							node.neighbors [i].H = Mathf.Abs (targetNode.x - node.neighbors [i].x) + Mathf.Abs (targetNode.y - node.neighbors [i].y);
+//							//Calculate F
+//							node.neighbors [i].F = node.neighbors [i].G + node.neighbors [i].H;
+//							//insert openlist order by F;
+//							AddOpenList (node.neighbors [i]);
+//							node.neighbors [i].previous = node;
+//						}
+//					}
+//				}
+//				yield return null;
+//			}
+//			yield return null;
+//			Debug.Log ("Find Done");
+//			Move ();
+//		}
 
 		//ノードをFで順番で openlist へ置いて
 		//付きキュー
-		void AddOpenList (Node node)
-		{
-			bool added = false;
-			for (int i = 0; i < openList.Count; i++) {
-				//node.isWallSide時優先に探する。
-				if (openList [i].F >= node.F){      // || node.isWallSide) {
-					openList.Insert (i, node);
-					added = true;
-					break;
-				}
-			}
-			if (!added) {
-				openList.Insert (openList.Count, node);
-			}
-			openSet.Add (node);
-		}
+//		void AddOpenList (Node node)
+//		{
+//			bool added = false;
+//			for (int i = 0; i < openList.Count; i++) {
+//				//node.isWallSide時優先に探する。
+//				if (openList [i].F >= node.F){      // || node.isWallSide) {
+//					openList.Insert (i, node);
+//					added = true;
+//					break;
+//				}
+//			}
+//			if (!added) {
+//				openList.Insert (openList.Count, node);
+//			}
+//			openSet.Add (node);
+//		}
 
 		public void Move ()
 		{
@@ -220,9 +220,12 @@ namespace YYGAStar
 				Gizmos.DrawCube (node.pos, Vector3.one);
 			}
 			Gizmos.color = Color.red;
-			foreach (Node node in openList) {
-				Gizmos.DrawCube (node.pos, Vector3.one);
-			}
+//			for(int i=0;i<openList.Count;i++){
+//				Gizmos.DrawCube (openList.pos, Vector3.one);
+//			}
+//			foreach (Node node in openList) {
+//				Gizmos.DrawCube (node.pos, Vector3.one);
+//			}
 		}
 
 	}
