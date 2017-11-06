@@ -1,0 +1,74 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class CreateMapFromImage : MonoBehaviour {
+
+	public Texture2D tex;
+
+	public bool load;
+
+	public int offsetX = 56;
+	public int offsetY = 30;
+	public float gridSize = 14f;
+	public List<GameObject> items;
+
+
+	void Update () {
+		if (load) {
+			for(int i0 = 0;i0<items.Count;i0++){
+				DestroyImmediate (items[i0]);
+			}
+			items.Clear ();
+			StartCoroutine (_Create());
+			load = false;
+		}
+	}
+
+	IEnumerator _Create(){
+		int i = 0;
+		while(offsetX + Mathf.RoundToInt(i * gridSize) < tex.width){
+			int j = 0;
+			while(offsetY + Mathf.RoundToInt(j * gridSize)  < tex.height){
+				if(CompareColor(tex.GetPixel(offsetX + Mathf.RoundToInt(i * gridSize) ,offsetY + Mathf.RoundToInt(j * gridSize)))){
+					items.Add (CreateObject(i,j));
+				}
+				j++;
+			}
+			yield return new WaitForSeconds(0.1f);
+			i++;
+		}
+		Debug.Log ("Done");
+	}
+
+	public float objectSize = 1.2f;
+	public float objectOffsetX = 10f;
+	public float objectOffsetY = 10f;
+	GameObject CreateObject(int x,int z){
+		GameObject go = GameObject.CreatePrimitive (PrimitiveType.Cube);
+		go.transform.localScale = new Vector3 (objectSize,objectSize * 10,objectSize);// Vector3.one * objectSize;
+		go.transform.position = new Vector3 (x+ objectOffsetX ,- 5f, z+ objectOffsetY) * objectSize;
+		StartCoroutine (_Move(go.transform,go.transform.position,go.transform.position + new Vector3(0,objectSize * 5f,0)));
+		return go;
+	}
+
+	IEnumerator _Move(Transform trans,Vector3 start,Vector3 target){
+		float t = 0;
+		float duration = 0.1f;
+		while(t<1){;
+			t += Time.deltaTime / duration;
+			trans.position = Vector3.Lerp (start,target,t);
+			yield return null;
+		}
+	}
+
+	bool CompareColor(Color c1){
+		if(c1.g < 0.1f && c1.b < 0.1f){
+			return true;
+		}
+		return false;
+	}
+
+
+
+}

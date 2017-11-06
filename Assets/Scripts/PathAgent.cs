@@ -21,7 +21,7 @@ namespace YYGAStar
 		//add,contain.
 		public HashSet<Node> closeSet = new HashSet<Node> ();
 		//whether synchronization.
-		bool isSynchronization = true;
+//		bool isSynchronization = true;
 
 		void Start ()
 		{
