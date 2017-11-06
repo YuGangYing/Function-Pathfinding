@@ -27,11 +27,12 @@ public class CreateMapFromImage : MonoBehaviour {
 	}
 
 	void Create(){
+		StopCoroutine ("_Create");
 		for(int i0 = 0;i0<items.Count;i0++){
 			DestroyImmediate (items[i0]);
 		}
 		items.Clear ();
-		StartCoroutine (_Create());
+		StartCoroutine ("_Create");
 	}
 
 	IEnumerator _Create(){
@@ -65,6 +66,8 @@ public class CreateMapFromImage : MonoBehaviour {
 		float t = 0;
 		float duration = 0.1f;
 		while(t<1){;
+			if (trans == null)
+				yield break;
 			t += Time.deltaTime / duration;
 			trans.position = Vector3.Lerp (start,target,t);
 			yield return null;
