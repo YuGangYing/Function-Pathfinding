@@ -1,28 +1,37 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CreateMapFromImage : MonoBehaviour {
 
 	public Texture2D tex;
-
 	public bool load;
-
 	public int offsetX = 56;
 	public int offsetY = 30;
 	public float gridSize = 14f;
 	public List<GameObject> items;
+	public Button btn_create;
 
+	void Awake(){
+		btn_create.onClick.AddListener (()=>{
+			Create();
+		});
+	}
 
 	void Update () {
 		if (load) {
-			for(int i0 = 0;i0<items.Count;i0++){
-				DestroyImmediate (items[i0]);
-			}
-			items.Clear ();
-			StartCoroutine (_Create());
+			Create ();
 			load = false;
 		}
+	}
+
+	void Create(){
+		for(int i0 = 0;i0<items.Count;i0++){
+			DestroyImmediate (items[i0]);
+		}
+		items.Clear ();
+		StartCoroutine (_Create());
 	}
 
 	IEnumerator _Create(){
