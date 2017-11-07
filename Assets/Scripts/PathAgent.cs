@@ -14,14 +14,10 @@ namespace YYGAStar
 		public Grid grid;
 		public Node currentNode;
 		public Node targetNode;
-		//add,remove,order.
 		public List<Node> openList = new List<Node> (1000);
-		//add,remove,contain.
-//		public HashSet<Node> openSet = new HashSet<Node> ();
-		//add,contain.
+		#if UNITY_EDITOR
 		public HashSet<Node> closeSet = new HashSet<Node> ();
-		//whether synchronization.
-//		bool isSynchronization = true;
+		#endif
 
 		void Start ()
 		{
@@ -30,62 +26,57 @@ namespace YYGAStar
 
 		public Node GetNode (Vector3 pos)
 		{
-			int xIndex = Mathf.RoundToInt (pos.x / grid.edgeLength);
-			int yIndex = Mathf.RoundToInt (pos.z / grid.edgeLength);
+			int xIndex = Mathf.RoundToInt ((pos.x - grid.startPos.x) / grid.edgeLength);
+			int yIndex = Mathf.RoundToInt ((pos.z - grid.startPos.z) / grid.edgeLength);
 			Node node = grid.nodes [xIndex, yIndex];
 			return node;
 		}
 
 		float mTime;
-		float mTime1;
-		float mOrderTime;
-		float mOrderTime1;
 
 		public void StartFinder (Vector3 pos)
 		{
-			mOrderTime = 0;
-			mOrderTime1 = 0;
-			Node target = GetNode (pos);
 			mTime = Time.realtimeSinceStartup;
+			Node target = GetNode (pos);
 			StartFinder (target);
 			Move ();
 			Debug.Log ("Total Find Time:" + (Time.realtimeSinceStartup - mTime));
-			Debug.Log (mTime1);
-			Debug.Log (mOrderTime);
-			Debug.Log (mOrderTime1);
 		}
 
 		public void StartFinder (Node target)
 		{
 			agentIndex++;
-			mTime1 = Time.realtimeSinceStartup;
 			openList.Clear ();
+			#if UNITY_EDITOR
 			closeSet.Clear ();
-//			openSet.Clear ();
+			#endif
 			if (mIsMoving)
 				StopCoroutine ("_Move");
 			targetNode = target;
 			currentNode = GetNode (transform.position);
 			openList.Add (currentNode);
-//			openSet.Add (currentNode);
 			grid.Clear ();
-			mTime1 = Time.realtimeSinceStartup - mTime1;
 			Find ();
 		}
 
-		void AddToOpenList(Node node){
+		void AddToOpenList (Node node)
+		{
 			node.isOpen = agentIndex;
 			AddOpenList (node);
 		}
 
-		Node RemoveFirstFromOpenList(){
+		Node RemoveFirstFromOpenList ()
+		{
 			Node node = openList [0];
 			openList.RemoveAt (0);
 			return node;
 		}
 
-		void AddToCloseList(Node node){
+		void AddToCloseList (Node node)
+		{
+			#if UNITY_EDITOR
 			closeSet.Add (node);
+			#endif
 			node.isClose = agentIndex;
 		}
 
@@ -95,14 +86,8 @@ namespace YYGAStar
 			float t1 = Time.realtimeSinceStartup;
 			while (openList.Count > 0) {
 				//リスト中にF値一番小さいのノード
-				Node node = RemoveFirstFromOpenList();// openList [0];
-				if (node == targetNode) {
-					openList.Clear ();
-//					openSet.Clear ();
-				} else {
-//					openList.Remove (node);
-//					openList.RemoveAt (0);//always index 0 の　ノード。
-//					openSet.Remove (node);
+				Node node = RemoveFirstFromOpenList ();// openList [0];
+				if (node != targetNode) {
 					AddToCloseList (node);
 					float t = Time.realtimeSinceStartup;
 					for (int i = 0; i < node.neighbors.Count; i++) {
@@ -119,10 +104,8 @@ namespace YYGAStar
 							node.neighbors [i].previous = node;
 						}
 					}
-					mOrderTime += (Time.realtimeSinceStartup - t);
 				}
 			}
-			mOrderTime1 = Time.realtimeSinceStartup - t1;
 			path.Clear ();
 			GetMovePath (targetNode);
 		}
@@ -130,17 +113,16 @@ namespace YYGAStar
 		//非同期 BUG中、TODO。
 		IEnumerator _Find ()
 		{
+			float t1 = Time.realtimeSinceStartup;
 			while (openList.Count > 0) {
 				//リスト中にF値一番小さいのノード
-				Node node = openList [0];
-				if (node == targetNode) {
-					openList.Clear ();
-					yield return null;
-				} else {
-					openList.Remove (node);
-					closeSet.Add (node);
+				Node node = RemoveFirstFromOpenList ();// openList [0];
+				if (node != targetNode) {
+					AddToCloseList (node);
+					float t = Time.realtimeSinceStartup;
 					for (int i = 0; i < node.neighbors.Count; i++) {
-						if (!openList.Contains (node.neighbors [i]) && !closeSet.Contains (node.neighbors [i]) && !node.neighbors [i].isBlock) {
+						if (node.neighbors [i].isOpen != agentIndex && node.neighbors [i].isClose != agentIndex && !node.neighbors [i].isBlock) {
+							//							if (!openSet.Contains (node.neighbors [i]) && !closeSet.Contains (node.neighbors [i]) && !node.neighbors [i].isBlock) {
 							//Calculate G
 							node.neighbors [i].G = node.G + node.consumes [i];
 							//Calculate H
@@ -148,16 +130,15 @@ namespace YYGAStar
 							//Calculate F
 							node.neighbors [i].F = node.neighbors [i].G + node.neighbors [i].H;
 							//insert openlist order by F;
-							AddOpenList (node.neighbors [i]);
+							AddToOpenList (node.neighbors [i]);
 							node.neighbors [i].previous = node;
 						}
 					}
 				}
 				yield return null;
 			}
-			yield return null;
-			Debug.Log ("Find Done");
-			Move ();
+			path.Clear ();
+			GetMovePath (targetNode);
 		}
 
 		//ノードをFで順番で openlist へ置いて
@@ -167,7 +148,7 @@ namespace YYGAStar
 			bool added = false;
 			for (int i = 0; i < openList.Count; i++) {
 				//node.isWallSide時優先に探する。
-				if (openList [i].F >= node.F){      // || node.isWallSide) {
+				if (openList [i].F >= node.F) {      // || node.isWallSide) {
 					openList.Insert (i, node);
 					added = true;
 					break;
@@ -176,7 +157,6 @@ namespace YYGAStar
 			if (!added) {
 				openList.Insert (openList.Count, node);
 			}
-//			openSet.Add (node);
 		}
 
 		public void Move ()
@@ -231,6 +211,7 @@ namespace YYGAStar
 			}
 		}
 
+		#if UNITY_EDITOR
 		void OnDrawGizmos ()
 		{
 			Gizmos.color = Color.yellow;
@@ -241,8 +222,12 @@ namespace YYGAStar
 			foreach (Node node in openList) {
 				Gizmos.DrawCube (node.pos, Vector3.one);
 			}
+			Gizmos.color = Color.green;
+			foreach (Node node in path) {
+				Gizmos.DrawCube (node.pos, Vector3.one);
+			}
 		}
-
+		#endif
 	}
 }
 

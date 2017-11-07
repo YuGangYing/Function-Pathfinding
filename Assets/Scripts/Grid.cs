@@ -1,138 +1,156 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+
 namespace YYGAStar
 {
 	//Grid(経路が探索られることができるノードを作成したり、保存(格納かくのう)したり)
 	//ノードが格納される場所(ばしょ)
-	public class Grid : MonoBehaviour {
+	public class Grid : MonoBehaviour
+	{
 		
 		public float edgeLength = 1.0f;
-		public Vector3 startPos = new Vector3(0.5f,0,0.5f);
-		public int groundLayer = 9;
+		public Vector3 startPos = new Vector3 (0.5f, 0, 0.5f);
+		public const int groundLayer = 9;
 		public int xCount;
 		public int yCount;
 		public Node[,] nodes;
 		public List<Node> allNodes;
 		public bool showGizmos = true;
 		public bool recalculateBlocks = true;
-#if UNITY_EDITOR
+		#if UNITY_EDITOR
 		public int x0;
 		public int y0;
-#endif
+		#endif
 
-		void Awake () {
-			Init();
-			CalculateBlockNode();
+		void Awake ()
+		{
+			Init ();
 		}
 
-		void Update(){
+		void Update ()
+		{
 			if (recalculateBlocks) {
 				CalculateBlockNode ();
+				CalculateNeighbor ();
 				recalculateBlocks = false;
 			}
 		}
 
-		public void Clear(){
-			for(int i=0;i<allNodes.Count;i++)// Node node in allNodes)
-			{
-				allNodes[i].previous = null;
+		public void Clear ()
+		{
+			for (int i = 0; i < allNodes.Count; i++) {// Node node in allNodes)
+				allNodes [i].previous = null;
 			}	
 		}
 
-		void Init()
+		void Init ()
 		{
-			xCount = Mathf.Max (1,xCount);
-			yCount = Mathf.Max (1,yCount);
-			nodes = new Node[xCount,yCount];
-			allNodes = new List<Node>();
+			xCount = Mathf.Max (1, xCount);
+			yCount = Mathf.Max (1, yCount);
+			nodes = new Node[xCount, yCount];
+			allNodes = new List<Node> ();
 			//start at (0,0,0),end at (xCount,0,yCount);
-			//TODO 今は四方面である、他のneighbor方法は六方面と八方面
-			for(int j=0;j < yCount;j++)
-			{
-				for(int i=0;i < xCount;i++)
-				{
-					Node node = new Node();
+			//今は８方面である、他のneighbor方法は６方面と４方面
+			for (int j = 0; j < yCount; j++) {
+				for (int i = 0; i < xCount; i++) {
+					Node node = new Node ();
 					node.x = i;
 					node.y = j;
-					node.pos = new Vector3(i * edgeLength,0,j * edgeLength) + startPos;
-					nodes[i,j] = node;
-//					Debug.Log("i=" + i + ";j=" + j);
-					if(i > 0)
-					{
-						nodes[i-1,j].neighbors.Add(node);
-						nodes[i-1,j].consumes.Add(edgeLength);
-						node.neighbors.Add(nodes[i-1,j]);
-						node.consumes.Add(edgeLength);
-					}
-					if(j > 0)
-					{
-						nodes[i,j-1].neighbors.Add(node);
-						nodes[i,j-1].consumes.Add(edgeLength);
-						node.neighbors.Add(nodes[i,j-1]);
-						node.consumes.Add(edgeLength);
-					}
-					if(i > 0 && j > 0)
-					{
-						nodes[i-1,j-1].neighbors.Add(node);
-						nodes[i-1,j-1].consumes.Add(edgeLength * 1.4f);
-						node.neighbors.Add(nodes[i-1,j-1]);
-						node.consumes.Add(edgeLength * 1.4f);
-					}
-					if(i < xCount-1 && j > 0)
-					{
-						nodes[i+1,j-1].neighbors.Add(node);
-						nodes[i+1,j-1].consumes.Add(edgeLength * 1.4f);
-						node.neighbors.Add(nodes[i+1,j-1]);
-						node.consumes.Add(edgeLength * 1.4f);
-					}
-					allNodes.Add(node);
+					node.pos = new Vector3 (i * edgeLength, 0, j * edgeLength) + startPos;
+					nodes [i, j] = node;
+					allNodes.Add (node);
 				}
 			}
+			CalculateBlockNode ();
+			CalculateNeighbor ();
 		}
 
-		public void CalculateBlockNode()
+		public void CalculateBlockNode ()
 		{
-			for(int i=0;i<allNodes.Count;i++)
-			{
-				Collider[] cols = Physics.OverlapSphere(allNodes[i].pos,edgeLength/2,1<<groundLayer);
-				if(cols.Length>0)
-				{
-					allNodes[i].isBlock = true;
-					for(int j=0;j<allNodes[i].neighbors.Count;j++){
+			for (int i = 0; i < allNodes.Count; i++) {
+				Collider[] cols = Physics.OverlapSphere (allNodes [i].pos, edgeLength / 4, 1 << groundLayer);
+				if (cols.Length > 0) {
+					allNodes [i].isBlock = true;
+					for (int j = 0; j < allNodes [i].neighbors.Count; j++) {
 						allNodes [i].neighbors [j].isWallSide = true;
 					}
 				}
 			}
 		}
 
-		void OnDrawGizmos()
+		public void CalculateNeighbor ()
 		{
-			if(showGizmos && allNodes!=null)
-			{
-				for(int i=0;i < allNodes.Count;i++)
-				{
-					if(!allNodes[i].isBlock)
-					{
-						Gizmos.color = Color.blue;
+			for (int i = 0; i < allNodes.Count; i++) {
+				allNodes [i].neighbors.Clear ();
+				allNodes [i].consumes.Clear ();
+			}
+			for (int j = 0; j < yCount; j++) {
+				for (int i = 0; i < xCount; i++) {
+					Node node = nodes [i, j];
+					if (node.isBlock) {
+						continue;
 					}
-					else
-					{
+					if (i > 0) {
+						if (!nodes [i - 1, j].isBlock) {
+							nodes [i - 1, j].neighbors.Add (node);
+							nodes [i - 1, j].consumes.Add (edgeLength);
+							node.neighbors.Add (nodes [i - 1, j]);
+							node.consumes.Add (edgeLength);
+						}
+					}
+					if (j > 0) {
+						if (!nodes [i, j - 1].isBlock) {
+							nodes [i, j - 1].neighbors.Add (node);
+							nodes [i, j - 1].consumes.Add (edgeLength);
+							node.neighbors.Add (nodes [i, j - 1]);
+							node.consumes.Add (edgeLength);
+						}
+					}
+					if (i > 0 && j > 0) {
+						if (!nodes [i - 1, j - 1].isBlock) {
+							nodes [i - 1, j - 1].neighbors.Add (node);
+							nodes [i - 1, j - 1].consumes.Add (edgeLength * 1.4f);
+							node.neighbors.Add (nodes [i - 1, j - 1]);
+							node.consumes.Add (edgeLength * 1.4f);
+						}
+					}
+					if (i < xCount - 1 && j > 0) {
+						if (!nodes [i + 1, j - 1].isBlock) {
+							nodes [i + 1, j - 1].neighbors.Add (node);
+							nodes [i + 1, j - 1].consumes.Add (edgeLength * 1.4f);
+							node.neighbors.Add (nodes [i + 1, j - 1]);
+							node.consumes.Add (edgeLength * 1.4f);
+						}
+					}
+				}
+			}
+//			for(int i=0;i<allNodes.Count;i++){
+//				Debug.Log (allNodes [i].neighbors.Count);
+//				Debug.Log (allNodes [i].consumes.Count);
+//			}
+		}
+
+
+		void OnDrawGizmos ()
+		{
+			if (showGizmos && allNodes != null) {
+				for (int i = 0; i < allNodes.Count; i++) {
+					if (!allNodes [i].isBlock) {
+						Gizmos.color = Color.blue;
+					} else {
 						Gizmos.color = Color.red;
 					}
-					Gizmos.DrawWireCube(allNodes[i].pos,Vector3.one * 0.1f);
+					Gizmos.DrawWireCube (allNodes [i].pos, Vector3.one * 0.1f);
 				}
 
 				#if UNITY_EDITOR
-				if(x0 < xCount && x0 >=0 && y0 < yCount && y0 >=0)
-				{
-					Node node = nodes[x0,y0];
-					if(node.neighbors!=null)
-					{
-						for(int i =0;i<node.neighbors.Count;i++)
-						{
+				if (x0 < xCount && x0 >= 0 && y0 < yCount && y0 >= 0) {
+					Node node = nodes [x0, y0];
+					if (node.neighbors != null) {
+						for (int i = 0; i < node.neighbors.Count; i++) {
 							Gizmos.color = Color.green;
-							Gizmos.DrawWireCube(node.neighbors[i].pos,Vector3.one * 0.1f);
+							Gizmos.DrawWireCube (node.neighbors [i].pos, Vector3.one * 0.1f);
 						}
 					}
 				}
@@ -145,17 +163,41 @@ namespace YYGAStar
 	public class Node
 	{
 		public int index;
-		public int x;//ノードの位置
-		public int y;//ノードの位置
-		public float G;//スタート distance.
-		public float H;//Manhattan distance  曼哈顿算法
+		public int x;
+		//ノードの位置
+		public int y;
+		//ノードの位置
+		public float G;
+		//スタート distance.
+		public float H;
+		//Manhattan distance  曼哈顿算法
 		public float F;
-		public List<Node> neighbors = new List<Node>();//このノードに接続(せつぞく)するノード。
-		public List<float> consumes = new List<float>();//このノードから接続ノードまで、移動消費(いどうしょうひ)コスト。
-		public bool isBlock;//壁中にいるのかどうか
-		public bool isWallSide;//壁に向かってるのかどうか
-		public Vector3 pos;//ゲーム世界のポジション。
-		public Node previous;//
+
+		#region 可以用于判断斜角是否可以通过。
+
+		public Node northNode;
+		public Node northEastNode;
+		public Node eastNode;
+		public Node southEastNode;
+		public Node southNode;
+		public Node southWestNode;
+		public Node westNode;
+		public Node northWestNode;
+
+		#endregion
+
+		public List<Node> neighbors = new List<Node> ();
+		//このノードに接続(せつぞく)するノード。
+		public List<float> consumes = new List<float> ();
+		//このノードから接続ノードまで、移動消費(いどうしょうひ)コスト。
+		public bool isBlock;
+		//壁中にいるのかどうか
+		public bool isWallSide;
+		//壁に向かってるのかどうか
+		public Vector3 pos;
+		//ゲーム世界のポジション。
+		public Node previous;
+		//
 
 		//用以下两个参数来判断是否在open close list，这样就可以不用hashset contain方法了，这样更快。（100*100的grid情况下从8ms降低6ms）
 		//用int自增，这样就不用在第二次开始的时候reset这两个值了
