@@ -63,6 +63,7 @@
      <Compile Include="Assets\Scripts\MoveAgent.cs" />
      <Compile Include="Assets\Scripts\PathAgent.cs" />
      <Compile Include="Assets\Scripts\PathController.cs" />
+     <Compile Include="Assets\Scripts\ScreenSize.cs" />
      <None Include="Assets\RtsCamera\README.txt" />
      <None Include="Assets\RtsCamera\DemoScene\Shaders\Additive.shader" />
  <Reference Include="UnityEngine.UI">

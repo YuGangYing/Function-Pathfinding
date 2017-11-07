@@ -10,6 +10,7 @@ namespace YYGAStar
 	{
 		
 		public float edgeLength = 1.0f;
+		public float anglePlus = 1.4f;
 		public Vector3 startPos = new Vector3 (0.5f, 0, 0.5f);
 		public const int groundLayer = 9;
 		public int xCount;
@@ -91,44 +92,66 @@ namespace YYGAStar
 					if (node.isBlock) {
 						continue;
 					}
+					bool north = false;
+					bool south = false;
+					bool east = false;
+					bool west = false;
+
 					if (i > 0) {
 						if (!nodes [i - 1, j].isBlock) {
-							nodes [i - 1, j].neighbors.Add (node);
-							nodes [i - 1, j].consumes.Add (edgeLength);
 							node.neighbors.Add (nodes [i - 1, j]);
 							node.consumes.Add (edgeLength);
-						}
+							west = true;
+						} 
 					}
 					if (j > 0) {
 						if (!nodes [i, j - 1].isBlock) {
-							nodes [i, j - 1].neighbors.Add (node);
-							nodes [i, j - 1].consumes.Add (edgeLength);
 							node.neighbors.Add (nodes [i, j - 1]);
 							node.consumes.Add (edgeLength);
+							south = true;
 						}
 					}
-					if (i > 0 && j > 0) {
-						if (!nodes [i - 1, j - 1].isBlock) {
-							nodes [i - 1, j - 1].neighbors.Add (node);
-							nodes [i - 1, j - 1].consumes.Add (edgeLength * 1.4f);
+					if (i < xCount - 1) {
+						if (!nodes [i + 1, j].isBlock) {
+							node.neighbors.Add (nodes [i + 1, j]);
+							node.consumes.Add (edgeLength );
+							east = true;
+						}
+					}
+					if (j < yCount - 1 ) {
+						if (!nodes [i, j + 1].isBlock) {
+							node.neighbors.Add (nodes [i , j + 1]);
+							node.consumes.Add (edgeLength );
+							north = true;
+						}
+					}
+
+					if(i > 0 && j > 0){
+						if (!nodes [i - 1, j - 1].isBlock && west && south) {
 							node.neighbors.Add (nodes [i - 1, j - 1]);
-							node.consumes.Add (edgeLength * 1.4f);
+							node.consumes.Add (edgeLength * anglePlus);
 						}
 					}
-					if (i < xCount - 1 && j > 0) {
-						if (!nodes [i + 1, j - 1].isBlock) {
-							nodes [i + 1, j - 1].neighbors.Add (node);
-							nodes [i + 1, j - 1].consumes.Add (edgeLength * 1.4f);
+					if(i > 0 && j < yCount - 1 ){
+						if (!nodes [i - 1, j + 1].isBlock && west && north) {
+							node.neighbors.Add (nodes [i - 1, j + 1]);
+							node.consumes.Add (edgeLength * anglePlus);
+						}
+					}
+					if(i < xCount - 1 && j > 0){
+						if (!nodes [i + 1, j - 1].isBlock && east && south) {
 							node.neighbors.Add (nodes [i + 1, j - 1]);
-							node.consumes.Add (edgeLength * 1.4f);
+							node.consumes.Add (edgeLength * anglePlus);
+						}
+					}
+					if(i < xCount - 1 && j < yCount - 1){
+						if (!nodes [i + 1, j + 1].isBlock && east && south) {
+							node.neighbors.Add (nodes [i + 1, j + 1]);
+							node.consumes.Add (edgeLength * anglePlus);
 						}
 					}
 				}
 			}
-//			for(int i=0;i<allNodes.Count;i++){
-//				Debug.Log (allNodes [i].neighbors.Count);
-//				Debug.Log (allNodes [i].consumes.Count);
-//			}
 		}
 
 
@@ -173,18 +196,18 @@ namespace YYGAStar
 		//Manhattan distance  曼哈顿算法
 		public float F;
 
-		#region 可以用于判断斜角是否可以通过。
-
-		public Node northNode;
-		public Node northEastNode;
-		public Node eastNode;
-		public Node southEastNode;
-		public Node southNode;
-		public Node southWestNode;
-		public Node westNode;
-		public Node northWestNode;
-
-		#endregion
+//		#region 可以用于判断斜角是否可以通过。
+//
+//		public Node northNode;
+//		public Node northEastNode;
+//		public Node eastNode;
+//		public Node southEastNode;
+//		public Node southNode;
+//		public Node southWestNode;
+//		public Node westNode;
+//		public Node northWestNode;
+//
+//		#endregion
 
 		public List<Node> neighbors = new List<Node> ();
 		//このノードに接続(せつぞく)するノード。

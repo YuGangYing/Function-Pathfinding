@@ -56,7 +56,9 @@ namespace YYGAStar
 			currentNode = GetNode (transform.position);
 			openList.Add (currentNode);
 			grid.Clear ();
-			Find ();
+//			Find ();
+			//TODO For tutorial.
+			StartCoroutine ("_Find");
 		}
 
 		void AddToOpenList (Node node)
@@ -84,7 +86,8 @@ namespace YYGAStar
 		void Find ()
 		{
 			float t1 = Time.realtimeSinceStartup;
-			while (openList.Count > 0) {
+			bool searched = false;
+			while (openList.Count > 0 && !searched) {
 				//リスト中にF値一番小さいのノード
 				Node node = RemoveFirstFromOpenList ();// openList [0];
 				if (node != targetNode) {
@@ -104,6 +107,8 @@ namespace YYGAStar
 							node.neighbors [i].previous = node;
 						}
 					}
+				}  else {
+					searched = true;
 				}
 			}
 			path.Clear ();
@@ -114,7 +119,8 @@ namespace YYGAStar
 		IEnumerator _Find ()
 		{
 			float t1 = Time.realtimeSinceStartup;
-			while (openList.Count > 0) {
+			bool searched = false;
+			while (openList.Count > 0 && !searched) {
 				//リスト中にF値一番小さいのノード
 				Node node = RemoveFirstFromOpenList ();// openList [0];
 				if (node != targetNode) {
@@ -134,6 +140,8 @@ namespace YYGAStar
 							node.neighbors [i].previous = node;
 						}
 					}
+				} else {
+					searched = true;
 				}
 				yield return null;
 			}
@@ -212,6 +220,8 @@ namespace YYGAStar
 		}
 
 		#if UNITY_EDITOR
+		float mColorSpeed = 10f;
+		float mColorPlus = -0.005f;
 		void OnDrawGizmos ()
 		{
 			Gizmos.color = Color.yellow;
@@ -222,9 +232,17 @@ namespace YYGAStar
 			foreach (Node node in openList) {
 				Gizmos.DrawCube (node.pos, Vector3.one);
 			}
-			Gizmos.color = Color.green;
+			int i = 0;
 			foreach (Node node in path) {
+
+				float sin = Mathf.Sin(Time.time* mColorSpeed + i * mColorPlus);
+				float cos = Mathf.Cos (Time.time * mColorSpeed + i * mColorPlus);
+//				Gizmos.color = Color.green;
+//				if(sin > 0.999f){
+				Gizmos.color = new Color(cos,sin,cos,1);
+//				}
 				Gizmos.DrawCube (node.pos, Vector3.one);
+				i++;
 			}
 		}
 		#endif
