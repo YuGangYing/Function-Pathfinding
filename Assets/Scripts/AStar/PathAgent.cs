@@ -24,7 +24,7 @@ namespace YYGAStar
 		#endif
 		public bool isIEnumerator = false;
 		//これで計算する、リストのRemoveの方法を使わない、早く、CGがない。
-		bool mCurrentIndex = 0;
+		int mCurrentIndex = 0;
 
 		void Start ()
 		{
