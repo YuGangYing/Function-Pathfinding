@@ -13,16 +13,18 @@ namespace YYGAStar
 		public float anglePlus = 1.4f;
 		public Vector3 startPos = new Vector3 (0.5f, 0, 0.5f);
 		public const int blockLayer = 9;
+		public const int groundLayer = 8;
 		public int xCount;
 		public int yCount;
 		public Node[,] nodes;
 		public List<Node> allNodes;
-		public bool showGizmos = true;
 		public bool recalculateBlocks = true;
 		#if UNITY_EDITOR
 		public int x0;
 		public int y0;
 		#endif
+
+		public bool showGizmos = true;
 
 		void Awake ()
 		{
@@ -33,12 +35,12 @@ namespace YYGAStar
 		{
 			if (recalculateBlocks) {
 				CalculateBlockNode ();
-				CalculateNeighbor ();
+				CalculateNeighbors ();
 				recalculateBlocks = false;
 			}
 		}
 
-		public void Clear ()
+		public void Reset ()
 		{
 			for (int i = 0; i < allNodes.Count; i++) {// Node node in allNodes)
 				allNodes [i].previous = null;
@@ -64,7 +66,7 @@ namespace YYGAStar
 				}
 			}
 			CalculateBlockNode ();
-			CalculateNeighbor ();
+			CalculateNeighbors ();
 		}
 
 		public void CalculateBlockNode ()
@@ -80,7 +82,7 @@ namespace YYGAStar
 			}
 		}
 
-		public void CalculateNeighbor ()
+		public void CalculateNeighbors ()
 		{
 			for (int i = 0; i < allNodes.Count; i++) {
 				allNodes [i].neighbors.Clear ();
@@ -92,68 +94,84 @@ namespace YYGAStar
 					if (node.isBlock) {
 						continue;
 					}
-					bool north = false;
-					bool south = false;
-					bool east = false;
-					bool west = false;
-
-					if (i > 0) {
-						if (!nodes [i - 1, j].isBlock) {
-							node.neighbors.Add (nodes [i - 1, j]);
-							node.consumes.Add (edgeLength);
-							west = true;
-						} 
-					}
-					if (j > 0) {
-						if (!nodes [i, j - 1].isBlock) {
-							node.neighbors.Add (nodes [i, j - 1]);
-							node.consumes.Add (edgeLength);
-							south = true;
-						}
-					}
-					if (i < xCount - 1) {
-						if (!nodes [i + 1, j].isBlock) {
-							node.neighbors.Add (nodes [i + 1, j]);
-							node.consumes.Add (edgeLength );
-							east = true;
-						}
-					}
-					if (j < yCount - 1 ) {
-						if (!nodes [i, j + 1].isBlock) {
-							node.neighbors.Add (nodes [i , j + 1]);
-							node.consumes.Add (edgeLength );
-							north = true;
-						}
-					}
-
-					if(i > 0 && j > 0){
-						if (!nodes [i - 1, j - 1].isBlock && west && south) {
-							node.neighbors.Add (nodes [i - 1, j - 1]);
-							node.consumes.Add (edgeLength * anglePlus);
-						}
-					}
-					if(i > 0 && j < yCount - 1 ){
-						if (!nodes [i - 1, j + 1].isBlock && west && north) {
-							node.neighbors.Add (nodes [i - 1, j + 1]);
-							node.consumes.Add (edgeLength * anglePlus);
-						}
-					}
-					if(i < xCount - 1 && j > 0){
-						if (!nodes [i + 1, j - 1].isBlock && east && south) {
-							node.neighbors.Add (nodes [i + 1, j - 1]);
-							node.consumes.Add (edgeLength * anglePlus);
-						}
-					}
-					if(i < xCount - 1 && j < yCount - 1){
-						if (!nodes [i + 1, j + 1].isBlock && east && south) {
-							node.neighbors.Add (nodes [i + 1, j + 1]);
-							node.consumes.Add (edgeLength * anglePlus);
-						}
-					}
+					CalculateNeighbor (node);
 				}
 			}
 		}
 
+		public void CalculateNeighbor(Node node){
+
+			bool north = false;
+			bool south = false;
+			bool east = false;
+			bool west = false;
+			node.neighbors.Clear ();
+			node.consumes.Clear ();
+			int i = node.x;
+			int j = node.y;
+			if (i > 0) {
+				if (!nodes [i - 1, j].isBlock) {
+					node.neighbors.Add (nodes [i - 1, j]);
+					node.consumes.Add (edgeLength);
+					west = true;
+				} 
+			}
+			if (j > 0) {
+				if (!nodes [i, j - 1].isBlock) {
+					node.neighbors.Add (nodes [i, j - 1]);
+					node.consumes.Add (edgeLength);
+					south = true;
+				}
+			}
+			if (i < xCount - 1) {
+				if (!nodes [i + 1, j].isBlock) {
+					node.neighbors.Add (nodes [i + 1, j]);
+					node.consumes.Add (edgeLength );
+					east = true;
+				}
+			}
+			if (j < yCount - 1 ) {
+				if (!nodes [i, j + 1].isBlock) {
+					node.neighbors.Add (nodes [i , j + 1]);
+					node.consumes.Add (edgeLength );
+					north = true;
+				}
+			}
+
+			if(i > 0 && j > 0){
+				if (!nodes [i - 1, j - 1].isBlock && west && south) {
+					node.neighbors.Add (nodes [i - 1, j - 1]);
+					node.consumes.Add (edgeLength * anglePlus);
+				}
+			}
+			if(i > 0 && j < yCount - 1 ){
+				if (!nodes [i - 1, j + 1].isBlock && west && north) {
+					node.neighbors.Add (nodes [i - 1, j + 1]);
+					node.consumes.Add (edgeLength * anglePlus);
+				}
+			}
+			if(i < xCount - 1 && j > 0){
+				if (!nodes [i + 1, j - 1].isBlock && east && south) {
+					node.neighbors.Add (nodes [i + 1, j - 1]);
+					node.consumes.Add (edgeLength * anglePlus);
+				}
+			}
+			if(i < xCount - 1 && j < yCount - 1){
+				if (!nodes [i + 1, j + 1].isBlock && east && south) {
+					node.neighbors.Add (nodes [i + 1, j + 1]);
+					node.consumes.Add (edgeLength * anglePlus);
+				}
+			}
+		}
+
+
+		public Node GetNode (Vector3 pos)
+		{
+			int xIndex = Mathf.RoundToInt ((pos.x - startPos.x) / edgeLength);
+			int yIndex = Mathf.RoundToInt ((pos.z - startPos.z) / edgeLength);
+			Node node = nodes [xIndex, yIndex];
+			return node;
+		}
 
 		void OnDrawGizmos ()
 		{
@@ -164,7 +182,7 @@ namespace YYGAStar
 					} else {
 						Gizmos.color = Color.red;
 					}
-					Gizmos.DrawWireCube (allNodes [i].pos, Vector3.one * 0.1f);
+					Gizmos.DrawWireCube (allNodes [i].pos, Vector3.one * edgeLength * 0.5f);
 				}
 
 				#if UNITY_EDITOR
@@ -173,7 +191,7 @@ namespace YYGAStar
 					if (node.neighbors != null) {
 						for (int i = 0; i < node.neighbors.Count; i++) {
 							Gizmos.color = Color.green;
-							Gizmos.DrawWireCube (node.neighbors [i].pos, Vector3.one * 0.1f);
+							Gizmos.DrawWireCube (node.neighbors [i].pos, Vector3.one * edgeLength * 0.5f);
 						}
 					}
 				}
@@ -195,19 +213,6 @@ namespace YYGAStar
 		public float H;
 		//Manhattan distance  曼哈顿算法
 		public float F;
-
-//		#region 可以用于判断斜角是否可以通过。
-//
-//		public Node northNode;
-//		public Node northEastNode;
-//		public Node eastNode;
-//		public Node southEastNode;
-//		public Node southNode;
-//		public Node southWestNode;
-//		public Node westNode;
-//		public Node northWestNode;
-//
-//		#endregion
 
 		public List<Node> neighbors = new List<Node> ();
 		//このノードに接続(せつぞく)するノード。
