@@ -9,6 +9,8 @@ namespace YYGAStar
 	{
 		//レイするのかどうか。
 		public bool isRaycast = false;
+		List<Node> mSmoothedPath = new List<Node>(1000);
+		List<Node> mSmoothedPathWithRay = new List<Node>(1000);
 
 		public List<Node> SmoothPath (List<Node> path)
 		{
@@ -25,17 +27,17 @@ namespace YYGAStar
 		List<Node> Smooth (List<Node> path)
 		{
 			Vector2 preDirection = Vector2.zero;
-			List<Node> smoothedPath = new List<Node> ();
+			mSmoothedPath.Clear ();
 			for (int i = 1; i < path.Count; i++) {
 				Vector2 dir = new Vector2 (path [i].x - path [i - 1].x, path [i].y - path [i - 1].y);//path [i].pos - preNode.pos;
 				if (dir != preDirection) {
 					if (i - 1 > 0)
-						smoothedPath.Add (path [i - 1]);
+						mSmoothedPath.Add (path [i - 1]);
 					preDirection = dir;
 				}
 			}
-			smoothedPath.Add (path [path.Count - 1]);
-			return smoothedPath;
+			mSmoothedPath.Add (path [path.Count - 1]);
+			return mSmoothedPath;
 		}
 
 		//レイで経路をさらになめらかにする
@@ -44,17 +46,17 @@ namespace YYGAStar
 			//forでpreNodeはnullかどうか、判断すること要らないために。
 			Node startNode = path [0];
 			Node endNode = null;
-			List<Node> smoothedPath = new List<Node> ();
+			mSmoothedPathWithRay.Clear ();
 			RaycastHit hit;
 			for (int i = 1; i < path.Count; i++) {
 				endNode = path [i];
 				if (Physics.Raycast (startNode.pos, (endNode.pos - startNode.pos).normalized, out hit, Vector3.Distance (startNode.pos, endNode.pos), 1 << Grid.blockLayer)) {
-					smoothedPath.Add (path [i - 1]);
+					mSmoothedPathWithRay.Add (path [i - 1]);
 					startNode = path [i - 1];
 				}
 			}
-			smoothedPath.Add (path [path.Count - 1]);
-			return smoothedPath;
+			mSmoothedPathWithRay.Add (path [path.Count - 1]);
+			return mSmoothedPathWithRay;
 		}
 
 	}
