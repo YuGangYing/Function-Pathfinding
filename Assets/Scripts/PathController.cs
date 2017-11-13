@@ -10,6 +10,12 @@ namespace YYGAStar
 		public Vector3 hitPos;
 		public GameObject block;
 
+		PathAgent[] mPathAgents;
+
+		void Awake(){
+			mPathAgents = FindObjectsOfType<PathAgent> ();
+		}
+
 		void Update ()
 		{
 			if (Input.GetMouseButtonDown (0)) {
@@ -17,7 +23,9 @@ namespace YYGAStar
 				RaycastHit hit;
 				if (Physics.Raycast (ray, out hit, Mathf.Infinity, 1 << LayerMask.NameToLayer ("Ground"))) {
 					hitPos = hit.point;
-					pathAgent.StartFinder (hitPos);
+					for(int i=0;i<mPathAgents.Length;i++){
+						mPathAgents[i].StartFinder (hitPos);
+					}
 				}
 			}
 			if (Input.GetKeyDown (KeyCode.H)) {
