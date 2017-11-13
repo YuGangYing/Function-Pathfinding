@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Events;
 
 namespace YYGAStar
 {
@@ -14,14 +15,23 @@ namespace YYGAStar
 		public Grid grid;
 		public Node currentNode;
 		public Node targetNode;
+		public bool isSmooth = true;
+		public PathModifier pathModifier;
+		public UnityAction onFindComplete;
 		public List<Node> openList = new List<Node> (1000);
 		#if UNITY_EDITOR
 		public HashSet<Node> closeSet = new HashSet<Node> ();
 		#endif
+		public bool isIEnumerator = false;
 
 		void Start ()
 		{
 			currentNode = GetNode (transform.position);
+			onFindComplete = ()=>{
+				MoveAgent moveAgent = GetComponent<MoveAgent>();
+				if(moveAgent!=null)
+					moveAgent.Move(smoothPath);
+			};
 		}
 
 		public Node GetNode (Vector3 pos)
@@ -39,7 +49,6 @@ namespace YYGAStar
 			mTime = Time.realtimeSinceStartup;
 			Node target = GetNode (pos);
 			StartFinder (target);
-			Move ();
 			Debug.Log ("Total Find Time:" + (Time.realtimeSinceStartup - mTime));
 		}
 
@@ -56,9 +65,10 @@ namespace YYGAStar
 			currentNode = GetNode (transform.position);
 			openList.Add (currentNode);
 			grid.Clear ();
-//			Find ();
-			//TODO For tutorial.
-			StartCoroutine ("_Find");
+			if(!isIEnumerator)
+				Find ();
+			else
+				StartCoroutine ("_Find");
 		}
 
 		void AddToOpenList (Node node)
@@ -111,8 +121,10 @@ namespace YYGAStar
 					searched = true;
 				}
 			}
-			path.Clear ();
+			smoothPath.Clear ();
 			GetMovePath (targetNode);
+			if (onFindComplete != null)
+				onFindComplete ();
 		}
 
 		//非同期 BUG中、TODO。
@@ -145,8 +157,10 @@ namespace YYGAStar
 				}
 				yield return null;
 			}
-			path.Clear ();
+			smoothPath.Clear ();
 			GetMovePath (targetNode);
+			if (onFindComplete != null)
+				onFindComplete ();
 		}
 
 		//ノードをFで順番で openlist へ置いて
@@ -178,7 +192,7 @@ namespace YYGAStar
 		IEnumerator _Move ()
 		{
 			mIsMoving = true;
-			while (path.Count > 0) {
+			while (smoothPath.Count > 0) {
 				float t = 0;
 				Vector3 pos = transform.position;
 				while (t < 1) {
@@ -186,12 +200,12 @@ namespace YYGAStar
 						StartFinder (targetNode);
 						StopCoroutine ("_Move");
 					}
-					transform.position = Vector3.Lerp (pos, path [0].pos, t);
-					transform.LookAt (path [0].pos);
+					transform.position = Vector3.Lerp (pos, smoothPath [0].pos, t);
+					transform.LookAt (smoothPath [0].pos);
 					t += Time.deltaTime * mSpeed;
 					yield return null;
 				}
-				path.RemoveAt (0);
+				smoothPath.RemoveAt (0);
 				yield return null;
 			}
 			mIsMoving = false;
@@ -199,7 +213,7 @@ namespace YYGAStar
 
 		bool IsPathBlock ()
 		{
-			foreach (Node node in path) {
+			foreach (Node node in smoothPath) {
 				if (node.isBlock) {
 					return true;
 				}
@@ -207,16 +221,22 @@ namespace YYGAStar
 			return false;
 		}
 
+		List<Node> smoothPath = new List<Node> (1000);
 		List<Node> path = new List<Node> (1000);
-		//経路をゲートする。
+		//経路を探索する。
 		public void GetMovePath (Node node)
 		{
+			smoothPath.Clear ();
+			path.Clear ();
 			Node currentNode = node;
-			path.Insert (0, currentNode);
+			smoothPath.Insert (0, currentNode);
 			while (currentNode.previous != null) {
-				path.Insert (0, currentNode.previous);
+				smoothPath.Insert (0, currentNode.previous);
 				currentNode = currentNode.previous;
 			}
+			path = smoothPath;
+			if(isSmooth)
+				smoothPath = pathModifier.SmoothPath (smoothPath);
 		}
 
 		#if UNITY_EDITOR
@@ -233,14 +253,10 @@ namespace YYGAStar
 				Gizmos.DrawCube (node.pos, Vector3.one);
 			}
 			int i = 0;
-			foreach (Node node in path) {
-
+			foreach (Node node in smoothPath) {
 				float sin = Mathf.Sin(Time.time* mColorSpeed + i * mColorPlus);
 				float cos = Mathf.Cos (Time.time * mColorSpeed + i * mColorPlus);
-//				Gizmos.color = Color.green;
-//				if(sin > 0.999f){
 				Gizmos.color = new Color(cos,sin,cos,1);
-//				}
 				Gizmos.DrawCube (node.pos, Vector3.one);
 				i++;
 			}

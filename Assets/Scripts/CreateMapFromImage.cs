@@ -91,7 +91,7 @@ namespace YYGAStar
 			GameObject go = GameObject.CreatePrimitive (PrimitiveType.Cube);
 			go.transform.localScale = new Vector3 (objectSize, 1, objectSize);// Vector3.one * objectSize;
 			go.transform.position = new Vector3 (x + objectOffsetX, 0, z + objectOffsetY) * objectSize;
-			go.layer = Grid.groundLayer;
+			go.layer = Grid.blockLayer;
 //		StartCoroutine (_Move(go.transform,go.transform.position,go.transform.position + new Vector3(0,objectSize * 5f,0)));
 			return go;
 		}

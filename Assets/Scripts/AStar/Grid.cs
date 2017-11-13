@@ -12,7 +12,7 @@ namespace YYGAStar
 		public float edgeLength = 1.0f;
 		public float anglePlus = 1.4f;
 		public Vector3 startPos = new Vector3 (0.5f, 0, 0.5f);
-		public const int groundLayer = 9;
+		public const int blockLayer = 9;
 		public int xCount;
 		public int yCount;
 		public Node[,] nodes;
@@ -70,7 +70,7 @@ namespace YYGAStar
 		public void CalculateBlockNode ()
 		{
 			for (int i = 0; i < allNodes.Count; i++) {
-				Collider[] cols = Physics.OverlapSphere (allNodes [i].pos, edgeLength / 4, 1 << groundLayer);
+				Collider[] cols = Physics.OverlapSphere (allNodes [i].pos, edgeLength / 4, 1 << blockLayer);
 				if (cols.Length > 0) {
 					allNodes [i].isBlock = true;
 					for (int j = 0; j < allNodes [i].neighbors.Count; j++) {
