@@ -29,10 +29,6 @@ namespace YYGAStar
 		void Update ()
 		{
 			if (load) {
-//				GameObject wallRoot = new GameObject ("Walls");
-//				foreach(GameObject go in items){
-//					go.transform.SetParent (wallRoot.transform);
-//				}
 				Create ();
 				load = false;
 			}
@@ -40,12 +36,10 @@ namespace YYGAStar
 
 		void Create ()
 		{
-//		StopCoroutine ("_Create");
 			for (int i0 = 0; i0 < items.Count; i0++) {
 				DestroyImmediate (items [i0]);
 			}
 			items.Clear ();
-//		StartCoroutine ("_Create");
 			_ImmCreate ();
 		}
 
@@ -92,7 +86,6 @@ namespace YYGAStar
 			go.transform.localScale = new Vector3 (objectSize, 1, objectSize);// Vector3.one * objectSize;
 			go.transform.position = new Vector3 (x + objectOffsetX, 0, z + objectOffsetY) * objectSize;
 			go.layer = Grid.blockLayer;
-//		StartCoroutine (_Move(go.transform,go.transform.position,go.transform.position + new Vector3(0,objectSize * 5f,0)));
 			return go;
 		}
 
