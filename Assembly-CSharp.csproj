@@ -57,6 +57,7 @@
      <Compile Include="Assets\RtsCamera\Scripts\RtsCameraKeys.cs" />
      <Compile Include="Assets\RtsCamera\Scripts\RtsCameraMouse.cs" />
      <Compile Include="Assets\RtsCamera\Scripts\RtsEffectsUpdater.cs" />
+     <Compile Include="Assets\Scripts\AStar\DynamicNode.cs" />
      <Compile Include="Assets\Scripts\AStar\Grid.cs" />
      <Compile Include="Assets\Scripts\AStar\MoveAgent.cs" />
      <Compile Include="Assets\Scripts\AStar\PathAgent.cs" />
