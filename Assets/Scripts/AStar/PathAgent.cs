@@ -22,44 +22,17 @@ namespace YYGAStar
 		#if UNITY_EDITOR
 		public List<Node> closeList = new List<Node> (1000);
 		#endif
-		public bool isIEnumerator = false;
+//		public bool isIEnumerator = false;
 		//これで計算する、リストのRemoveの方法を使わない、早く、CGがない。
 		int mCurrentIndex = 0;
+		public int groupId;
+		public bool isLeader;
 
 		void Start ()
 		{
 			currentNode = grid.GetNode (transform.position);
-			onFindComplete = ()=>{
-				MoveAgent moveAgent = GetComponent<MoveAgent>();
-				if(moveAgent!=null)
-					moveAgent.Move(smoothPath);
-			};
 		}
 
-		float mTime;
-
-		public void StartFinder (Vector3 pos)
-		{
-			mTime = Time.realtimeSinceStartup;
-			Node target = grid.GetNode (pos);
-			StartFinder (target);
-			Debug.Log ("Total Find Time:" + (Time.realtimeSinceStartup - mTime));
-		}
-
-		public void StartFinder (Node target)
-		{
-			agentIndex++;
-			mCurrentIndex = 0;
-//			openList.Clear ();
-//			#if UNITY_EDITOR
-//			closeList.Clear ();
-//			#endif
-			targetNode = target;
-			if(!isIEnumerator)
-				Find ();
-			else
-				StartCoroutine ("_Find");
-		}
 
 		void AddToOpenList (Node node)
 		{
@@ -83,9 +56,20 @@ namespace YYGAStar
 			node.isClose = agentIndex;
 		}
 
-		//同期
-		void Find ()
+		float mTime;
+		public List<Node> StartFinder (Vector3 pos)
 		{
+			mTime = Time.realtimeSinceStartup;
+			Node target = grid.GetNode (pos);
+			return StartFinder (target);
+		}
+
+		//同期
+		public List<Node> StartFinder (Node target)
+		{
+			agentIndex++;
+			mCurrentIndex = 0;
+			targetNode = target;
 			float t1 = Time.realtimeSinceStartup;
 			bool searched = false;
 			openList.Clear();
@@ -116,50 +100,51 @@ namespace YYGAStar
 					searched = true;
 				}
 			}
-			return;
 			if (searched) {
-				GetMovePath (targetNode);
+				resultPath = GetMovePath (targetNode);
 				if (onFindComplete != null)
 					onFindComplete ();
 			} else {
 				Debug.Log ("target can't be reached!");
 			}
+			Debug.Log ("Total Find Time:" + (Time.realtimeSinceStartup - mTime));
+			return resultPath;
 		}
 
 		//非同期 
 		//演出だけ
-		IEnumerator _Find ()
-		{
-			float t1 = Time.realtimeSinceStartup;
-			bool searched = false;
-			while (openList.Count > 0 && !searched) {
-				//リスト中にF値一番小さいのノード
-				Node node = RemoveFirstFromOpenList ();
-				if (node != targetNode) {
-					AddToCloseList (node);
-					float t = Time.realtimeSinceStartup;
-					for (int i = 0; i < node.neighbors.Count; i++) {
-						if (node.neighbors [i].isOpen != agentIndex && node.neighbors [i].isClose != agentIndex && !node.neighbors [i].isBlock) {
-							//Calculate G
-							node.neighbors [i].G = node.G + node.consumes [i];
-							//Calculate H
-							node.neighbors [i].H = Mathf.Abs (targetNode.x - node.neighbors [i].x) + Mathf.Abs (targetNode.y - node.neighbors [i].y);
-							//Calculate F
-							node.neighbors [i].F = node.neighbors [i].G + node.neighbors [i].H;
-							//insert openlist order by F;
-							AddToOpenList (node.neighbors [i]);
-							node.neighbors [i].previous = node;
-						}
-					}
-				} else {
-					searched = true;
-				}
-				yield return null;
-			}
-			GetMovePath (targetNode);
-			if (onFindComplete != null)
-				onFindComplete ();
-		}
+//		IEnumerator _Find ()
+//		{
+//			float t1 = Time.realtimeSinceStartup;
+//			bool searched = false;
+//			while (openList.Count > 0 && !searched) {
+//				//リスト中にF値一番小さいのノード
+//				Node node = RemoveFirstFromOpenList ();
+//				if (node != targetNode) {
+//					AddToCloseList (node);
+//					float t = Time.realtimeSinceStartup;
+//					for (int i = 0; i < node.neighbors.Count; i++) {
+//						if (node.neighbors [i].isOpen != agentIndex && node.neighbors [i].isClose != agentIndex && !node.neighbors [i].isBlock) {
+//							//Calculate G
+//							node.neighbors [i].G = node.G + node.consumes [i];
+//							//Calculate H
+//							node.neighbors [i].H = Mathf.Abs (targetNode.x - node.neighbors [i].x) + Mathf.Abs (targetNode.y - node.neighbors [i].y);
+//							//Calculate F
+//							node.neighbors [i].F = node.neighbors [i].G + node.neighbors [i].H;
+//							//insert openlist order by F;
+//							AddToOpenList (node.neighbors [i]);
+//							node.neighbors [i].previous = node;
+//						}
+//					}
+//				} else {
+//					searched = true;
+//				}
+//				yield return null;
+//			}
+//			GetMovePath (targetNode);
+//			if (onFindComplete != null)
+//				onFindComplete ();
+//		}
 
 		//ノードをF（H）で順番で openlist へ置いて
 		//付きキュー
@@ -167,7 +152,7 @@ namespace YYGAStar
 		{
 			bool added = false;
 			for (int i = mCurrentIndex; i < openList.Count; i++) {
-				if (openList [i].F >= node.F ) {    
+				if (openList [i].H >= node.H ) {    
 					openList.Insert (i, node);
 					added = true;
 					break;
@@ -180,7 +165,7 @@ namespace YYGAStar
 
 		bool IsPathBlock ()
 		{
-			foreach (Node node in smoothPath) {
+			foreach (Node node in resultPath) {
 				if (node.isBlock) {
 					return true;
 				}
@@ -188,22 +173,21 @@ namespace YYGAStar
 			return false;
 		}
 
-		List<Node> smoothPath = new List<Node> (1000);
-		List<Node> path = new List<Node> (1000);
+		List<Node> resultPath = new List<Node> (1000);
 		//経路を探索する。
-		public void GetMovePath (Node node)
+		public List<Node> GetMovePath (Node node)
 		{
-			smoothPath.Clear ();
-			path.Clear ();
+			resultPath.Clear ();
 			Node currentNode = node;
-			smoothPath.Insert (0, currentNode);
+			resultPath.Insert (0, currentNode);
 			while (currentNode.previous != null) {
-				smoothPath.Insert (0, currentNode.previous);
+				resultPath.Insert (0, currentNode.previous);
 				currentNode = currentNode.previous;
 			}
-			path = smoothPath;
-			if(isSmooth)
-				smoothPath = pathModifier.SmoothPath (smoothPath);
+			if (isSmooth)
+				return pathModifier.SmoothPath (resultPath);
+			else
+				return resultPath;
 		}
 
 		#if UNITY_EDITOR
@@ -222,11 +206,11 @@ namespace YYGAStar
 			for(int i=mCurrentIndex;i<openList.Count;i++){
 				Gizmos.DrawCube (openList[i].pos, Vector3.one);
 			}
-			for(int i=0;i<smoothPath.Count;i++){
+			for(int i=0;i<resultPath.Count;i++){
 				float sin = Mathf.Sin(Time.time* mColorSpeed + i * mColorPlus);
 				float cos = Mathf.Cos (Time.time * mColorSpeed + i * mColorPlus);
 				Gizmos.color = new Color(cos,sin,cos,1);
-				Gizmos.DrawCube (smoothPath[i].pos, Vector3.one);
+				Gizmos.DrawCube (resultPath[i].pos, Vector3.one);
 			}
 		}
 		#endif
