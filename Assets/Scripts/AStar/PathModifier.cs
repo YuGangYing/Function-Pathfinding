@@ -14,11 +14,12 @@ namespace YYGAStar
 
 		public List<Node> SmoothPath (List<Node> path)
 		{
+			Debug.Log (path.Count);
 			if (path.Count == 0)
 				return new List<Node> ();
 			List<Node> smoothedPath = Smooth (path);
 			if (isRaycast) {
-				smoothedPath = SmoothWithRay (path);
+				smoothedPath = SmoothWithRay (smoothedPath);
 			}
 			return smoothedPath;
 		}
@@ -27,6 +28,7 @@ namespace YYGAStar
 		List<Node> Smooth (List<Node> path)
 		{
 			Vector2 preDirection = Vector2.zero;
+			Debug.Log (mSmoothedPath == path);
 			mSmoothedPath.Clear ();
 			for (int i = 1; i < path.Count; i++) {
 				Vector2 dir = new Vector2 (path [i].x - path [i - 1].x, path [i].y - path [i - 1].y);//path [i].pos - preNode.pos;
@@ -36,6 +38,7 @@ namespace YYGAStar
 					preDirection = dir;
 				}
 			}
+			Debug.Log (path.Count - 1);
 			mSmoothedPath.Add (path [path.Count - 1]);
 			return mSmoothedPath;
 		}
