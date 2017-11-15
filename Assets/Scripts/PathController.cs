@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace YYGAStar
 {
@@ -7,8 +8,7 @@ namespace YYGAStar
 	{
 
 		public PathAgent pathAgent;
-		public Vector3 hitPos;
-		public GameObject block;
+		Vector3 mHitPos;
 
 		PathAgent[] mPathAgents;
 
@@ -22,22 +22,19 @@ namespace YYGAStar
 				Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
 				RaycastHit hit;
 				if (Physics.Raycast (ray, out hit, Mathf.Infinity, 1 << LayerMask.NameToLayer ("Ground"))) {
-					hitPos = hit.point;
+					mHitPos = hit.point;
 					for(int i=0;i<mPathAgents.Length;i++){
-						mPathAgents[i].StartFinder (hitPos);
+						List<Node> path = mPathAgents[i].StartFinder (mHitPos);
+						mPathAgents [i].GetComponent<MoveAgent> ().Move (path);
 					}
 				}
-			}
-			if (Input.GetKeyDown (KeyCode.H)) {
-				block.SetActive (true);
-				pathAgent.grid.CalculateBlockNode ();
 			}
 		}
 
 		void OnDrawGizmos ()
 		{
 			Gizmos.color = Color.red;
-			Gizmos.DrawWireCube (hitPos, Vector3.one);
+			Gizmos.DrawWireCube (mHitPos, Vector3.one);
 		}
 	}
 }
