@@ -7,9 +7,7 @@ namespace YYGAStar
 	public class PathController : MonoBehaviour
 	{
 
-		public PathAgent pathAgent;
 		Vector3 mHitPos;
-
 		PathAgent[] mPathAgents;
 
 		void Awake(){
