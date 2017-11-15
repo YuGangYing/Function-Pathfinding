@@ -173,6 +173,27 @@ namespace YYGAStar
 			return node;
 		}
 
+		//これはコストは一番少ない(TODO 直すが必要です)
+		public bool Raycast(Node startNode, Node endNode,out Node hit){
+			Vector3 direction = (endNode.pos - startNode.pos).normalized;
+			int maxNodeCount = Mathf.FloorToInt(Vector3.Magnitude(endNode.pos - startNode.pos) / edgeLength);
+			for(int i =0;i<maxNodeCount;i++){
+				Vector3 pos = startNode.pos + direction * edgeLength * i;
+				Node node = GetNode (pos);
+				if(node.isBlock){
+					hit = node;
+					return true;
+				}
+			}
+			if(endNode.isBlock){
+				hit = endNode;
+				return true;
+			}
+			hit = null;
+			return false;
+		}
+
+
 		void OnDrawGizmos ()
 		{
 			if (showGizmos && allNodes != null) {
