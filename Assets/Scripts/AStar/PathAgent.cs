@@ -13,16 +13,13 @@ namespace YYGAStar
 	{
 		static int agentIndex = 0;
 		public Grid grid;
-		public Node currentNode;
 		public Node targetNode;
 		public bool isSmooth = true;
 		public PathModifier pathModifier;
-		public UnityAction onFindComplete;
 		public List<Node> openList = new List<Node> (1000);
 		#if UNITY_EDITOR
 		public List<Node> closeList = new List<Node> (1000);
 		#endif
-//		public bool isIEnumerator = false;
 		//これで計算する、リストのRemoveの方法を使わない、早く、CGがない。
 		int mCurrentIndex = 0;
 		public int groupId;
@@ -30,9 +27,8 @@ namespace YYGAStar
 
 		void Start ()
 		{
-			currentNode = grid.GetNode (transform.position);
+			
 		}
-
 
 		void AddToOpenList (Node node)
 		{
@@ -43,7 +39,6 @@ namespace YYGAStar
 		Node RemoveFirstFromOpenList ()
 		{
 			Node node = openList [mCurrentIndex];
-//			openList.RemoveAt (0);
 			mCurrentIndex++;
 			return node;
 		}
@@ -59,25 +54,27 @@ namespace YYGAStar
 		float mTime;
 		public List<Node> StartFinder (Vector3 pos)
 		{
-			mTime = Time.realtimeSinceStartup;
+			Node currentNode = grid.GetNode (transform.position);
 			Node target = grid.GetNode (pos);
-			return StartFinder (target);
+			return StartFinder (currentNode,target);
 		}
 
 		//同期
-		public List<Node> StartFinder (Node target)
+		public List<Node> StartFinder (Node currentNode, Node target)
 		{
+			mTime = Time.realtimeSinceStartup;
 			agentIndex++;
 			mCurrentIndex = 0;
 			targetNode = target;
 			float t1 = Time.realtimeSinceStartup;
 			bool searched = false;
 			openList.Clear();
+			#if UNITY_EDITOR
 			closeList.Clear();
+			#endif
 			grid.Reset ();
-			currentNode = grid.GetNode (transform.position);
 			openList.Add (currentNode);
-			while (openList.Count > 0 && !searched) {
+			while (openList.Count > mCurrentIndex && !searched) {
 				//リスト中にF値一番小さいのノード
 				Node node = RemoveFirstFromOpenList ();// openList [0];
 				if (node != targetNode) {
@@ -100,51 +97,15 @@ namespace YYGAStar
 					searched = true;
 				}
 			}
+			List<Node> resultPath = new List<Node> ();
 			if (searched) {
 				resultPath = GetMovePath (targetNode);
-				if (onFindComplete != null)
-					onFindComplete ();
 			} else {
 				Debug.Log ("target can't be reached!");
 			}
-			Debug.Log ("Total Find Time:" + (Time.realtimeSinceStartup - mTime));
-			return resultPath;
+			List<Node> realPath = new List<Node> (resultPath);
+			return realPath;
 		}
-
-		//非同期 
-		//演出だけ
-//		IEnumerator _Find ()
-//		{
-//			float t1 = Time.realtimeSinceStartup;
-//			bool searched = false;
-//			while (openList.Count > 0 && !searched) {
-//				//リスト中にF値一番小さいのノード
-//				Node node = RemoveFirstFromOpenList ();
-//				if (node != targetNode) {
-//					AddToCloseList (node);
-//					float t = Time.realtimeSinceStartup;
-//					for (int i = 0; i < node.neighbors.Count; i++) {
-//						if (node.neighbors [i].isOpen != agentIndex && node.neighbors [i].isClose != agentIndex && !node.neighbors [i].isBlock) {
-//							//Calculate G
-//							node.neighbors [i].G = node.G + node.consumes [i];
-//							//Calculate H
-//							node.neighbors [i].H = Mathf.Abs (targetNode.x - node.neighbors [i].x) + Mathf.Abs (targetNode.y - node.neighbors [i].y);
-//							//Calculate F
-//							node.neighbors [i].F = node.neighbors [i].G + node.neighbors [i].H;
-//							//insert openlist order by F;
-//							AddToOpenList (node.neighbors [i]);
-//							node.neighbors [i].previous = node;
-//						}
-//					}
-//				} else {
-//					searched = true;
-//				}
-//				yield return null;
-//			}
-//			GetMovePath (targetNode);
-//			if (onFindComplete != null)
-//				onFindComplete ();
-//		}
 
 		//ノードをF（H）で順番で openlist へ置いて
 		//付きキュー
