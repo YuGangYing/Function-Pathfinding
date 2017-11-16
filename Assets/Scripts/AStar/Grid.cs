@@ -54,7 +54,7 @@ namespace YYGAStar
 			nodes = new Node[xCount, yCount];
 			allNodes = new List<Node> ();
 			//start at (0,0,0),end at (xCount,0,yCount);
-			//今は８方面である、他のneighbor方法は６方面と４方面
+			//今は８方面である
 			for (int j = 0; j < yCount; j++) {
 				for (int i = 0; i < xCount; i++) {
 					Node node = new Node ();
@@ -164,13 +164,36 @@ namespace YYGAStar
 			}
 		}
 
-
 		public Node GetNode (Vector3 pos)
 		{
 			int xIndex = Mathf.RoundToInt ((pos.x - startPos.x) / edgeLength);
 			int yIndex = Mathf.RoundToInt ((pos.z - startPos.z) / edgeLength);
 			Node node = nodes [xIndex, yIndex];
 			return node;
+		}
+
+
+		int mSearchIndex = 0;
+		public List<Node> GetNearest(Node start,int count){
+			mSearchIndex++;
+			List<Node> openList = new List<Node> ();
+			openList.Add (start);
+			start.isNearest = mSearchIndex;
+			int j = 0;
+			while(openList.Count <= count && openList.Count > j){
+				Node node = openList [j];
+				for (int i = 0; i < node.neighbors.Count; i++) {
+					if (node.neighbors [i].isNearest != mSearchIndex && !node.neighbors [i].isBlock) {
+						if (openList.Count <= count) {
+							openList.Add (node.neighbors [i]);
+							node.neighbors [i].isNearest = mSearchIndex;
+						}
+					}
+				}
+				j++;
+			}
+			openList.RemoveAt (0);
+			return openList;
 		}
 
 		//これはコストは一番少ない(TODO 直すが必要です)
@@ -192,7 +215,6 @@ namespace YYGAStar
 			hit = null;
 			return false;
 		}
-
 
 		void OnDrawGizmos ()
 		{
@@ -252,5 +274,6 @@ namespace YYGAStar
 		//用int自增，这样就不用在第二次开始的时候reset这两个值了
 		public int isOpen;
 		public int isClose;
+		public int isNearest;
 	}
 }
