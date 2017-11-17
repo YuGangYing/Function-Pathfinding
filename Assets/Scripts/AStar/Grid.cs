@@ -23,11 +23,12 @@ namespace YYGAStar
 		public int x0;
 		public int y0;
 		#endif
-
+		public static Grid current;
 		public bool showGizmos = true;
 
 		void Awake ()
 		{
+			current = this;
 			Init ();
 		}
 
@@ -197,6 +198,14 @@ namespace YYGAStar
 		}
 
 		//これはコストは一番少ない(TODO 直すが必要です)
+		//ノードチェクする方法
+		//startNodeからendNodeまでのxのint値段。例えば(0.5,4.5) to (2.5,0.5) 経路のx 1,2 経路のy 4,3,2,1
+		//y = ax + b;
+		//4.5 = 0.5a + b;
+		//0.5 = 2.5a + b;
+		//公式で減った、a = -2; b= 5.5;
+		//y = -2x + 5.5;
+		//通るノードは　(x=1,y=3.5),(x=2,y=1.5),(x=0.75,y=4),(x=1.25,y=3),(x=1.75,y=2),(x=2.25,y=1)
 		public bool Raycast(Node startNode, Node endNode,out Node hit){
 			Vector3 direction = (endNode.pos - startNode.pos).normalized;
 			int maxNodeCount = Mathf.FloorToInt(Vector3.Magnitude(endNode.pos - startNode.pos) / edgeLength);
