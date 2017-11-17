@@ -41,32 +41,43 @@ namespace YYGAStar
 		}
 
 		void RVOMove(int groupId){
-			RVOGroup group0 = agentGroup [groupId];
-			PathAgent leader = group0.leader;
 			Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
 			RaycastHit hit;
 			if (Physics.Raycast (ray, out hit, Mathf.Infinity, 1 << Grid.groundLayer)) {
-				float time = Time.realtimeSinceStartup;
-				Node targetNode = grid.GetNode (hit.point);
-				Node leaderNode = grid.GetNode (leader.transform.position);
-				List<Node> smoothPath = leader.StartFinder (leaderNode,targetNode);
-				MoveAgent moveAgent = leader.GetComponent<MoveAgent> ();
-				if (moveAgent != null)
-					moveAgent.Move (smoothPath);
-				List <Node> nearest = grid.GetNearest (targetNode,group0.members.Count);
-				for (int i = 0; i < group0.members.Count; i++) {
-					List<Node> smoothPathMember = group0.members[i].StartFinder (grid.GetNode (group0.members[i].transform.position),leaderNode);
-					smoothPathMember.AddRange (smoothPath);
-					List<Node> endPath = group0.members [i].StartFinder (smoothPathMember [smoothPathMember.Count - 2], nearest[i]);
-					smoothPathMember.RemoveAt (smoothPathMember.Count-1);
-					smoothPathMember.AddRange (endPath);
-					MoveAgent moveAgentMember = group0.members[i].GetComponent<MoveAgent> ();
-					if (moveAgentMember != null)
-						moveAgentMember.Move (smoothPathMember);
-				}
-				Debug.Log ("Total Search Time:" + (Time.realtimeSinceStartup - time));
+				StartCoroutine (_RVOMove(0,hit.point));
 			}
 		}
+
+		IEnumerator _RVOMove(int groupId,Vector3 pos){
+			RVOGroup group0 = agentGroup [groupId];
+			PathAgent leader = group0.leader;
+			float time = Time.realtimeSinceStartup;
+			Node targetNode = grid.GetNode (pos);
+			Node leaderNode = grid.GetNode (leader.transform.position);
+			List<Node> smoothPath = leader.StartFind (leaderNode,targetNode);
+			MoveAgent moveAgent = leader.GetComponent<MoveAgent> ();
+			if (moveAgent != null)
+				moveAgent.Move (smoothPath);
+			List<Node> leaderPath = new List<Node> (smoothPath);
+			List <Node> nearest = grid.GetNearest (targetNode,group0.members.Count);
+			for (int i = 0; i < group0.members.Count; i++) {
+				List<Node> smoothPathMember = group0.members[i].StartFind (grid.GetNode (group0.members[i].transform.position),leaderNode);
+				smoothPathMember.AddRange (leaderPath);
+				List<Node> endPath = group0.members [i].StartFind (smoothPathMember [smoothPathMember.Count - 2], nearest[i]);
+				smoothPathMember.RemoveAt (smoothPathMember.Count-1);
+				smoothPathMember.AddRange (endPath);
+				MoveAgent moveAgentMember = group0.members[i].GetComponent<MoveAgent> ();
+				if (moveAgentMember != null)
+					moveAgentMember.Move (smoothPathMember);
+				if(PathAgent.nodeCountSearched > 1000){
+					PathAgent.nodeCountSearched = 0;
+					yield return null;
+				}
+			}
+			Debug.Log ("Total Search Time:" + (Time.realtimeSinceStartup - time));
+			yield return null;
+		}
+
 
 		void NormalMove(int groupId){
 			RVOGroup group0 = agentGroup [groupId];
@@ -77,13 +88,13 @@ namespace YYGAStar
 				float time = Time.realtimeSinceStartup;
 				Node targetNode = grid.GetNode (hit.point);
 				Node leaderNode = grid.GetNode (leader.transform.position);
-				List<Node> smoothPath = leader.StartFinder (leaderNode,targetNode);
+				List<Node> smoothPath = leader.StartFind (leaderNode,targetNode);
 				MoveAgent moveAgent = leader.GetComponent<MoveAgent> ();
 				if (moveAgent != null)
 					moveAgent.Move (smoothPath);
 				List <Node> nearest = grid.GetNearest (targetNode,group0.members.Count);
 				for (int i = 0; i < group0.members.Count; i++) {
-					List<Node> smoothPathMember = group0.members[i].StartFinder (grid.GetNode (group0.members[i].transform.position),nearest[i]);
+					List<Node> smoothPathMember = group0.members[i].StartFind (grid.GetNode (group0.members[i].transform.position),nearest[i]);
 //					smoothPathMember.AddRange (smoothPath);
 //					List<Node> endPath = group0.members [i].StartFinder (smoothPathMember [smoothPathMember.Count - 2], nearest[i]);
 //					smoothPathMember.RemoveAt (smoothPathMember.Count-1);

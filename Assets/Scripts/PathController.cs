@@ -22,7 +22,7 @@ namespace YYGAStar
 				if (Physics.Raycast (ray, out hit, Mathf.Infinity, 1 << LayerMask.NameToLayer ("Ground"))) {
 					mHitPos = hit.point;
 					for(int i=0;i<mPathAgents.Length;i++){
-						List<Node> path = mPathAgents[i].StartFinder (mHitPos);
+						List<Node> path = mPathAgents[i].StartFind (mHitPos);
 						mPathAgents [i].GetComponent<MoveAgent> ().Move (path);
 					}
 				}
