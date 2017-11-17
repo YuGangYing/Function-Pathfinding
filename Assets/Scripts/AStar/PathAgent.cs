@@ -6,9 +6,6 @@ using UnityEngine.Events;
 namespace YYGAStar
 {
 	//エースター　A to B の最短(さいたん)経路(けいろ)を探索(たんさく)
-	//TODO 壁に向かってるノード必要だ。
-	//TODO 様々な場合を考えることがある。
-	//TODO 効率化になる必要だ。
 	public class PathAgent : MonoBehaviour
 	{
 		static int agentIndex = 0;
@@ -24,11 +21,6 @@ namespace YYGAStar
 		int mCurrentIndex = 0;
 		public int groupId;
 		public bool isLeader;
-
-		void Start ()
-		{
-			
-		}
 
 		void AddToOpenList (Node node)
 		{
@@ -51,18 +43,17 @@ namespace YYGAStar
 			node.isClose = agentIndex;
 		}
 
-		float mTime;
-		public List<Node> StartFinder (Vector3 pos)
+		public List<Node> StartFind (Vector3 pos)
 		{
 			Node currentNode = grid.GetNode (transform.position);
 			Node target = grid.GetNode (pos);
-			return StartFinder (currentNode,target);
+			return StartFind (currentNode,target);
 		}
 
+		public static int nodeCountSearched;
 		//同期
-		public List<Node> StartFinder (Node currentNode, Node target)
+		public List<Node> StartFind (Node currentNode, Node target)
 		{
-			mTime = Time.realtimeSinceStartup;
 			agentIndex++;
 			mCurrentIndex = 0;
 			targetNode = target;
@@ -91,6 +82,7 @@ namespace YYGAStar
 							//insert openlist order by F;
 							AddToOpenList (node.neighbors [i]);
 							node.neighbors [i].previous = node;
+							nodeCountSearched++;
 						}
 					}
 				}  else {
@@ -113,7 +105,7 @@ namespace YYGAStar
 		{
 			bool added = false;
 			for (int i = mCurrentIndex; i < openList.Count; i++) {
-				if (openList [i].H >= node.H ) {    
+				if (openList [i].F >= node.F ) {    
 					openList.Insert (i, node);
 					added = true;
 					break;
