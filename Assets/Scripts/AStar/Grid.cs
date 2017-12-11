@@ -198,7 +198,7 @@ namespace YYGAStar
 		}
 
 		//これはコストは一番少ない(TODO 直すが必要です)
-		//ノードチェクする方法
+		//ノードをチェクする方法
 		//startNodeからendNodeまでのxのint値段。例えば(0.5,4.5) to (2.5,0.5) 経路のx 1,2 経路のy 4,3,2,1
 		//y = ax + b;
 		//4.5 = 0.5a + b;
@@ -225,6 +225,7 @@ namespace YYGAStar
 			return false;
 		}
 
+		#if UNITY_EDITOR
 		void OnDrawGizmos ()
 		{
 			if (showGizmos && allNodes != null) {
@@ -251,6 +252,8 @@ namespace YYGAStar
 
 			}
 		}
+		#endif
+
 	}
 
 	public class Node
