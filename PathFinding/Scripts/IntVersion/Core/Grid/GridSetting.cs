@@ -5,7 +5,7 @@ namespace BlueNoah.PathFinding.Int
     public class GridSetting
     {
 
-        public int nodeWidth = 100;
+        public int halfNodeWidth = 50;
 
         public int diagonalPlus = 140;
 
@@ -14,6 +14,14 @@ namespace BlueNoah.PathFinding.Int
         public int xCount = 100;
 
         public int zCount = 50;
+
+        public int nodeWidth
+        {
+            get
+            {
+                return halfNodeWidth * 2;
+            }
+        }
 
     }
 }

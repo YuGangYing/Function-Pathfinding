@@ -5,7 +5,10 @@ namespace BlueNoah.PathFinding.Int
 {
     public class Node
     {
+        public Grid grid;
+
         public int index;
+
         public int x;
         //ノードの位置
         public int z;
@@ -18,7 +21,7 @@ namespace BlueNoah.PathFinding.Int
 
         public List<Node> neighbors = new List<Node>();
         //このノードに接続(せつぞく)するノード。
-        public List<float> consumes = new List<float>();
+        public List<int> consumes = new List<int>();
         //このノードから接続ノードまで、移動消費(いどうしょうひ)コスト。
         bool mIsBlock;
         //マースを使えからし。
@@ -36,5 +39,14 @@ namespace BlueNoah.PathFinding.Int
         //用int自增，这样就不用在第二次开始的时候reset这两个值了
         public int isOpen;
         public int isClose;
+
+        public bool IsBlock
+        {
+            get
+            {
+                return mIsBlock;
+            }
+        }
+
     }
 }
